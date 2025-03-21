@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
+    kotlin("plugin.serialization")version "2.1.10"
 }
 
 android {
@@ -74,6 +75,7 @@ dependencies {
     implementation( "androidx.navigation:navigation-compose:2.7.5")
     implementation( "androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 
+
 // Retrofit
     implementation( "com.squareup.retrofit2:retrofit:2.9.0")
     implementation( "com.squareup.retrofit2:converter-gson:2.9.0")
@@ -94,4 +96,32 @@ dependencies {
     implementation("androidx.room:room-ktx:$room_version")
 //Glide
     implementation("com.github.bumptech.glide:compose:1.0.0-beta01")
+    // Coil for image loading
+    implementation ("io.coil-kt:coil-compose:2.5.0")
+    //serilization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
+
+// Lottie Compose
+    val lottieVersion = "6.0.0"
+    implementation("com.airbnb.android:lottie-compose:$lottieVersion")
+    //Room
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+
+//    val nav_version = 2.8.8
+    implementation (libs.androidx.navigation.compose)
+    implementation (libs.kotlinx.serialization.json)
+
+    implementation(libs.accompanist.systemuicontroller)
+
+    implementation(libs.lottie.compose)
+
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
 }
