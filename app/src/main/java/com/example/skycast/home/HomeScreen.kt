@@ -1,5 +1,7 @@
 package com.example.skycast.home
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,7 +26,12 @@ import com.example.skycast.model.models.CurrentWeather
 import com.example.skycast.model.models.DailyWeather
 import com.example.skycast.model.models.HourlyWeather
 import com.example.skycast.model.models.WeatherResponse
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun WeatherScreen(weather: WeatherResponse) {
     Column(modifier = Modifier
@@ -82,6 +89,7 @@ fun CurrentWeatherSection(current: CurrentWeather) {
         Text("Description: ${current.weather.firstOrNull()?.description ?: "N/A"}")
     }
 }
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HourlyWeatherCard(hour: HourlyWeather) {
     Card(
@@ -91,12 +99,13 @@ fun HourlyWeatherCard(hour: HourlyWeather) {
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
-            Text("Hour: ${hour.dt}")
+            Text("Hour: ${formatTo12HourTime(hour.dt)}")
             Text("Temp: ${hour.temp}°C")
             Text(hour.weather.firstOrNull()?.main ?: "Clear")
         }
     }
 }
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DailyWeatherItem(day: DailyWeather) {
     Card(
@@ -106,11 +115,27 @@ fun DailyWeatherItem(day: DailyWeather) {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
-            Text("Date: ${day.dt}")
+            Text("Date: ${formatToDayDate(day.dt)}")
             Text("Day Temp: ${day.temp.day}°C")
             Text("Night Temp: ${day.temp.night}°C")
             Text(day.weather.firstOrNull()?.main ?: "Clear")
         }
     }
+}
+@RequiresApi(Build.VERSION_CODES.O)
+fun formatTo12HourTime(unixTimestamp: Long): String {
+    val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
+    val zoneId = ZoneId.systemDefault()
+    return Instant.ofEpochSecond(unixTimestamp)
+        .atZone(zoneId)
+        .format(formatter)
+}
+@RequiresApi(Build.VERSION_CODES.O)
+fun formatToDayDate(unixTimestamp: Long, timeZone: String = "UTC"): String {
+    val formatter = DateTimeFormatter.ofPattern("EEE, dd MMM", Locale.getDefault())
+    val zoneId = ZoneId.of(timeZone) 
+    return Instant.ofEpochSecond(unixTimestamp)
+        .atZone(zoneId)
+        .format(formatter)
 }
 
