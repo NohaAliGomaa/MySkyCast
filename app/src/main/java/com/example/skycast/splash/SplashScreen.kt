@@ -17,21 +17,22 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.skycast.R
+import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(onNavToLogin: () -> Unit) {
+fun SplashScreen(onFinish: () -> Unit) {
     val composition = rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.splash_animation))
     val progress = animateLottieCompositionAsState(
         composition = composition.value,
-        iterations = 1, // Play once
+        iterations = 1,
         speed = 1.0f,
         restartOnPlay = false
     )
 
-    LaunchedEffect(progress.value) {
-        if (progress.value == 1f) {
-            onNavToLogin()
-        }
+    // Trigger navigation after animation finishes (e.g., 2.5 seconds total)
+    LaunchedEffect(true) {
+        delay(2500)
+        onFinish()
     }
 
     Box(
