@@ -133,7 +133,7 @@ fun formatTo12HourTime(unixTimestamp: Long): String {
 @RequiresApi(Build.VERSION_CODES.O)
 fun formatToDayDate(unixTimestamp: Long, timeZone: String = "UTC"): String {
     val formatter = DateTimeFormatter.ofPattern("EEE, dd MMM", Locale.getDefault())
-    val zoneId = ZoneId.of(timeZone) 
+    val zoneId = ZoneId.of(timeZone)
     return Instant.ofEpochSecond(unixTimestamp)
         .atZone(zoneId)
         .format(formatter)
