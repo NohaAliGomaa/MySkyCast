@@ -9,7 +9,7 @@ class WeatherRemoteDataSourceImpl :WeatherRemoteDataSource {
     private val WeatherApi: WeatherApiService = RetrofitClient.apiService
 
     override fun getCurrentWeather(): Flow<WeatherResponse> = flow {
-       val response = WeatherApi.getCurrentWeather(35.596048,-5.344827,"85e90ac76ec05044a030f7ee6cdf4591")
+       val response = WeatherApi.getCurrentWeather(35.596048,-5.344827,"metric","85e90ac76ec05044a030f7ee6cdf4591")
         Log.i("TAG", "Fetched ${response.body()?.current} products from API")
         if (response.isSuccessful && response.body() != null) {
             Log.i("TAG", "Successed ${response.body()?.current} products from API")
