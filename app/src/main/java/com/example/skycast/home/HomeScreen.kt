@@ -45,6 +45,7 @@ fun WeatherScreen(weather: WeatherResponse) {
 
         // 🌡️ Current Weather
         Text("Current Weather", fontSize = 18.sp, fontWeight = FontWeight.Medium)
+        Text("${weather.timezone}", fontSize = 18.sp, fontWeight = FontWeight.Medium)
         CurrentWeatherSection(current = weather.current)
 
         Spacer(modifier = Modifier.height(16.dp))
