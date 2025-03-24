@@ -1,6 +1,7 @@
 package com.example.skycast.model.remote
 
 import com.example.skycast.model.models.WeatherResponse
+import com.example.skycast.model.util.AppConstants
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.GET
@@ -13,7 +14,7 @@ interface WeatherApiService {
         @Query("lat") lat: Double,
         @Query("lon") lon: Double,
         @Query("units") units: String = "metric",
-        @Query("appid") apiKey: String
+        @Query("appid") apiKey: String = AppConstants.WEATHER_API_KEY
     ): Response<WeatherResponse>
 
     @GET("data/3.0/onecall/timemachine")

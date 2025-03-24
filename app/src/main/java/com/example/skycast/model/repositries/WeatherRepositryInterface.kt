@@ -4,5 +4,7 @@ import com.example.skycast.model.models.WeatherResponse
 import kotlinx.coroutines.flow.Flow
 
 interface WeatherRepositryInterface {
-    fun getCurrentWeather() : Flow<WeatherResponse>
+    fun getCurrentWeather(lat: Double,
+                          lon: Double,
+                          units: String) : Flow<WeatherResponse>
 }

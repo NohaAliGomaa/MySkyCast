@@ -1,5 +1,10 @@
 package com.example.skycast.home
 
+import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
@@ -17,19 +22,42 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.skycast.model.location.LocationHelper
+import com.example.skycast.model.location.LocationState
 import com.example.skycast.model.models.CurrentWeather
 import com.example.skycast.model.models.DailyWeather
 import com.example.skycast.model.models.HourlyWeather
 import com.example.skycast.model.models.WeatherResponse
+import com.example.skycast.viewmodel.LocationViewModel
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.Button
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import android.provider.Settings
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.CircularProgressIndicator
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -47,6 +75,7 @@ fun WeatherScreen(weather: WeatherResponse) {
         Text("Current Weather", fontSize = 18.sp, fontWeight = FontWeight.Medium)
         Text("${weather.timezone}", fontSize = 18.sp, fontWeight = FontWeight.Medium)
         CurrentWeatherSection(current = weather.current)
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -139,4 +168,3 @@ fun formatToDayDate(unixTimestamp: Long, timeZone: String = "UTC"): String {
         .atZone(zoneId)
         .format(formatter)
 }
-

@@ -38,7 +38,7 @@ fun SplashScreen(onFinish: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White),
+            .background(Color.Black),
         contentAlignment = Alignment.Center
     ) {
         LottieAnimation(

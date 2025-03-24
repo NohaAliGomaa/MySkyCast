@@ -2,8 +2,11 @@ package com.example.skycast.model.location
 
 import android.location.Location
 
-sealed class LocationState {
-    object Loading : LocationState()
-    data class Success(val location: Location) : LocationState()
-    data class Error(val message: String) : LocationState()
-}
+data class LocationState(
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val address: String? = null,
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val isGpsEnabled: Boolean = true
+)

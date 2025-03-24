@@ -20,9 +20,11 @@ class WeatherViewModel(private val repo :WeatherRepositry) : ViewModel() {
 //    private val _favProducts = MutableStateFlow<WeatherResult>(WeatherResult.Loading)
 //    val favProducts: StateFlow<WeatherResult>  = _favProducts.asStateFlow()
 
-    fun getCurrentWeather() {
+    fun getCurrentWeather(lat: Double,
+                          lon: Double,
+                          units: String) {
         viewModelScope.launch{
-            repo.getCurrentWeather()
+            repo.getCurrentWeather(lat,lon,units)
                 .catch { e -> _currentWeather.value =  WeatherResult.Failure(e) }
                 .collect{ currentWeather ->
                     Log.i("TAG", "CurrentWeathers loaded: ${currentWeather.current}")
