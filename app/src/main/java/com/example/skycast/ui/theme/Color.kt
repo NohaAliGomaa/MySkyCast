@@ -11,7 +11,7 @@ val PurpleGrey40 = Color(0xFF625B71)
 val Pink40 = Color(0xFF7D5260)
 
 // Custom Theme Colors
-val PrimaryColor = Color(0xFF32285E)
-val SecondaryColor = Color(0xFF322E41)
+val PrimaryColor = Color(0xFF5C3C96)
+val SecondaryColor = Color(0xFF181C3A)
 val TertiaryColor = Color(0xFF492535)
 val OnErrorColor = Color(0xFF690005)

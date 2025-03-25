@@ -54,71 +54,148 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import android.provider.Settings
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.paddingFromBaseline
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.example.skycast.R
+import com.example.skycast.ui.theme.PrimaryColor
+import com.example.skycast.ui.theme.SecondaryColor
 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun WeatherScreen(weather: WeatherResponse) {
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        // 🌄 Background Image
+        Image(
+            painter = painterResource(id = R.drawable.weather_bg),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
 
-        Text("Timezone: ${weather.timezone}", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        Text("Latitude: ${weather.lat}, Longitude: ${weather.lon}", fontSize = 14.sp)
+        // 🏠 House Image (Centered vertically)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp, vertical = 40.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            Spacer(modifier = Modifier.height(60.dp))
+                Text(
+                    "${weather.timezone}",
+                    color = Color.White,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Medium
+                )
 
-        Spacer(modifier = Modifier.height(16.dp))
+                val currentWeather = weather.current
+                val dailyWeather = weather.daily
 
-        // 🌡️ Current Weather
-        Text("Current Weather", fontSize = 18.sp, fontWeight = FontWeight.Medium)
-        Text("${weather.timezone}", fontSize = 18.sp, fontWeight = FontWeight.Medium)
-        CurrentWeatherSection(current = weather.current)
+                Text(
+                    "${currentWeather.temp}°C",
+                    color = Color.White,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    currentWeather.weather.firstOrNull()?.description ?: "N/A",
+                    color = Color.LightGray
+                )
+
+                Row(modifier = Modifier.padding(8.dp)) {
+                    Text("H°: ${dailyWeather.get(0).temp.max}°  ", color = Color.White)
+                    Text("L°: ${dailyWeather.get(0).temp.min}°", color = Color.White)
+                }
 
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 🕐 Hourly Forecast (first 5)
-        Text("Hourly Forecast", fontSize = 18.sp, fontWeight = FontWeight.Medium)
-        LazyRow {
-            items(weather.hourly) { hour ->
-                HourlyWeatherCard(hour)
-            }
+            Image(
+                painter = painterResource(id = R.drawable.ic_house),
+                contentDescription = "Weather House",
+                modifier = Modifier
+                    .size(400.dp)
+            )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        // 📦 Static Bottom Sheet Overlapping the House Image
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(350.dp)
+                .align(Alignment.BottomCenter),
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(SecondaryColor.value))
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+            ) {
+                // Optional handle bar
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .width(40.dp)
+                        .height(4.dp)
+                        .background(Color.Gray, shape = RoundedCornerShape(2.dp))
+                )
 
-        // 📅 Daily Forecast (first 3)
-        Text("Daily Forecast", fontSize = 18.sp, fontWeight = FontWeight.Medium)
-        LazyColumn {
-            items(weather.daily) { day ->
-                DailyWeatherItem(day)
-            }
-        }
+                Spacer(modifier = Modifier.height(12.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
+                Text("Hourly Forecast", fontSize = 18.sp, fontWeight = FontWeight.Medium)
+                LazyRow {
+                    items(weather.hourly.take(5)) { hour ->
+                        HourlyWeatherCard(hour)
+                    }
+                }
 
-        // 🚨 Alerts
-        weather.alerts?.let { alerts ->
-            if (alerts.isNotEmpty()) {
-                Text("Weather Alerts", fontSize = 18.sp, fontWeight = FontWeight.Medium, color = Color.Red)
-                alerts.forEach { alert ->
-                    Text("- ${alert.event}", color = Color.Red)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text("Daily Forecast", fontSize = 18.sp, fontWeight = FontWeight.Medium)
+                LazyColumn {
+                    items(weather.daily.take(3)) { day ->
+                        DailyWeatherItem(day)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                weather.alerts?.let { alerts ->
+                    if (alerts.isNotEmpty()) {
+                        Text(
+                            "Weather Alerts",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.Red
+                        )
+                        alerts.forEach { alert ->
+                            Text("- ${alert.event}", color = Color.Red)
+                        }
+                    }
                 }
             }
         }
     }
+
 }
-@Composable
-fun CurrentWeatherSection(current: CurrentWeather) {
-    Column(modifier = Modifier.padding(8.dp)) {
-        Text("Temp: ${current.temp}°C")
-        Text("Humidity: ${current.humidity}%")
-        Text("Wind Speed: ${current.wind_speed} m/s")
-        Text("Description: ${current.weather.firstOrNull()?.description ?: "N/A"}")
-    }
-}
+
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HourlyWeatherCard(hour: HourlyWeather) {
@@ -135,6 +212,7 @@ fun HourlyWeatherCard(hour: HourlyWeather) {
         }
     }
 }
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DailyWeatherItem(day: DailyWeather) {
@@ -152,6 +230,7 @@ fun DailyWeatherItem(day: DailyWeather) {
         }
     }
 }
+
 @RequiresApi(Build.VERSION_CODES.O)
 fun formatTo12HourTime(unixTimestamp: Long): String {
     val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
@@ -160,6 +239,7 @@ fun formatTo12HourTime(unixTimestamp: Long): String {
         .atZone(zoneId)
         .format(formatter)
 }
+
 @RequiresApi(Build.VERSION_CODES.O)
 fun formatToDayDate(unixTimestamp: Long, timeZone: String = "UTC"): String {
     val formatter = DateTimeFormatter.ofPattern("EEE, dd MMM", Locale.getDefault())
