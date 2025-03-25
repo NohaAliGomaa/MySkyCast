@@ -169,7 +169,7 @@ fun AppNavigation(
 
                 is WeatherResult.Success -> {
                     val currentWeather = (weather as WeatherResult.Success).data
-                    WeatherScreen(currentWeather)
+                    WeatherScreen(currentWeather, locationState.cityName ?: "Unknown")
                 }
 
                 is WeatherResult.Failure -> {

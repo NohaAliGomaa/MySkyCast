@@ -91,25 +91,38 @@ class LocationViewModel(application: Application) : AndroidViewModel(application
             try {
                 val geocoder = Geocoder(getApplication(), Locale.getDefault())
                 val addresses = geocoder.getFromLocation(lat, lon, 1)
+
                 if (!addresses.isNullOrEmpty()) {
                     val address = addresses[0]
+                    val city = address.adminArea ?: "Unknown city"
                     val fullAddress = buildString {
                         append(address.getAddressLine(0) ?: "")
                         append("\n")
-                        append(address.locality ?: "")
+                        append(city)
                         append(", ")
                         append(address.adminArea ?: "")
                         append(" ")
                         append(address.postalCode ?: "")
                     }
-                    _locationState.value = _locationState.value.copy(address = fullAddress)
+
+                    _locationState.value = _locationState.value.copy(
+                        address = fullAddress,
+                        cityName = city
+                    )
                 } else {
-                    _locationState.value = _locationState.value.copy(address = "No address found")
+                    _locationState.value = _locationState.value.copy(
+                        address = "No address found",
+                        cityName = "Unknown city"
+                    )
                 }
             } catch (e: IOException) {
                 Log.e("Geocoder", "Failed to get address: ${e.message}")
-                _locationState.value = _locationState.value.copy(address = "Failed to get address")
+                _locationState.value = _locationState.value.copy(
+                    address = "Failed to get address",
+                    cityName = "Unknown city"
+                )
             }
         }
     }
+
 }

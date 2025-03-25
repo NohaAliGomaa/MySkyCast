@@ -54,30 +54,52 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import android.provider.Settings
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.IntOffset
 import com.example.skycast.R
 import com.example.skycast.ui.theme.PrimaryColor
 import com.example.skycast.ui.theme.SecondaryColor
+import kotlinx.coroutines.launch
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.*
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun WeatherScreen(weather: WeatherResponse) {
+fun WeatherScreen(weather: WeatherResponse,cityName: String) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -100,7 +122,7 @@ fun WeatherScreen(weather: WeatherResponse) {
         ) {
             Spacer(modifier = Modifier.height(60.dp))
                 Text(
-                    "${weather.timezone}",
+                    "${cityName}",
                     color = Color.White,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Medium
@@ -135,27 +157,49 @@ fun WeatherScreen(weather: WeatherResponse) {
         }
 
         // 📦 Static Bottom Sheet Overlapping the House Image
-        Card(
+        val sheetState = rememberModalBottomSheetState(
+            skipPartiallyExpanded = false
+        )
+        val scope = rememberCoroutineScope()
+
+        ModalBottomSheet(
+            onDismissRequest = {
+                // Prevent complete dismissal by re-expanding the sheet
+                scope.launch {
+                    sheetState.partialExpand()
+                }
+            },
+            sheetState = sheetState,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(350.dp)
-                .align(Alignment.BottomCenter),
+                .heightIn(min = 150.dp, max = 600.dp), // Minimum height to ensure partial visibility
             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(SecondaryColor.value))
-        ) {
+            containerColor = Color(SecondaryColor.value),
+            contentColor = Color.Black,
+            tonalElevation = 8.dp,
+            scrimColor = Color.Black.copy(alpha = 0.32f),
+            dragHandle = {
+                BottomSheetDefaults.DragHandle(
+                    modifier = Modifier.clickable {
+                        // Toggle between partially and fully expanded states
+                        scope.launch {
+                            if (sheetState.currentValue == SheetValue.PartiallyExpanded) {
+                                sheetState.show() // Fully expand
+                            } else {
+                                sheetState.partialExpand() // Return to partial expansion
+                            }
+                        }
+                    }
+                )
+            },
+            windowInsets = WindowInsets(0)
+        ){
+
             Column(
                 modifier = Modifier
                     .padding(16.dp)
-            ) {
-                // Optional handle bar
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .width(40.dp)
-                        .height(4.dp)
-                        .background(Color.Gray, shape = RoundedCornerShape(2.dp))
-                )
 
+            ) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text("Hourly Forecast", fontSize = 18.sp, fontWeight = FontWeight.Medium)
@@ -188,6 +232,7 @@ fun WeatherScreen(weather: WeatherResponse) {
                             Text("- ${alert.event}", color = Color.Red)
                         }
                     }
+
                 }
             }
         }
@@ -247,4 +292,72 @@ fun formatToDayDate(unixTimestamp: Long, timeZone: String = "UTC"): String {
     return Instant.ofEpochSecond(unixTimestamp)
         .atZone(zoneId)
         .format(formatter)
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CollapsibleWeatherBottomSheet(weather: WeatherResponse) {
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
+
+    val coroutineScope = rememberCoroutineScope()
+
+    // Example trigger: automatically show the bottom sheet on launch
+    LaunchedEffect(Unit) {
+        sheetState.show()
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = {
+            coroutineScope.launch { sheetState.hide() }
+        },
+        sheetState = sheetState,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        containerColor = Color(SecondaryColor.value),
+        tonalElevation = 8.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .width(40.dp)
+                    .height(4.dp)
+                    .background(Color.Gray, RoundedCornerShape(2.dp))
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text("Hourly Forecast", fontSize = 18.sp, fontWeight = FontWeight.Medium)
+            LazyRow {
+                items(weather.hourly.take(5)) { hour ->
+                    HourlyWeatherCard(hour)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text("Daily Forecast", fontSize = 18.sp, fontWeight = FontWeight.Medium)
+            LazyColumn {
+                items(weather.daily.take(3)) { day ->
+                    DailyWeatherItem(day)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            weather.alerts?.takeIf { it.isNotEmpty() }?.let { alerts ->
+                Text("Weather Alerts", fontSize = 18.sp, fontWeight = FontWeight.Medium, color = Color.Red)
+                alerts.forEach { alert ->
+                    Text("- ${alert.event}", color = Color.Red, modifier = Modifier.padding(vertical = 2.dp))
+                }
+            }
+        }
+    }
 }
