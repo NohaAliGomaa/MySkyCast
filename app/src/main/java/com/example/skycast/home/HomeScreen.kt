@@ -133,41 +133,57 @@ import kotlin.math.PI
 import androidx.compose.ui.graphics.nativeCanvas
 import android.graphics.Typeface
 import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.zIndex
 import com.example.skycast.model.models.Sys
 import com.example.skycast.model.models.WeatherInfo
 import java.util.TimeZone
 
-//,weatherInfo : WeatherInfo
-@OptIn(ExperimentalMaterial3Api::class)
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun WeatherScreen(weather: WeatherResponse,weatherInfo : WeatherInfo) {
+fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo) {
     val currentWeather = weather.current
     val dailyWeather = weather.daily
-
+    val scrollState = rememberScrollState()
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = Modifier.fillMaxSize()
     ) {
-        // 🌄 Background Image
-        Image(
-            painter = painterResource(id = R.drawable.weather_bg),
-            contentDescription = null,
+        // Background Image with House
+        Box(
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.weather_bg),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
 
-        // 🏠 House Image (Centered vertically)
+            Image(
+                painter = painterResource(id = R.drawable.ic_house),
+                contentDescription = "Weather House",
+                modifier = Modifier
+                    .size(400.dp)
+                    .offset(y = 100.dp)
+            )
+        }
+
+        // Scrollable Content
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 40.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+                .fillMaxHeight()
+                .verticalScroll(scrollState)
+
         ) {
             Spacer(modifier = Modifier.height(60.dp))
+
+            // Location and Temperature
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text(
                     "${weatherInfo.name}",
                     color = Color.White,
@@ -181,6 +197,7 @@ fun WeatherScreen(weather: WeatherResponse,weatherInfo : WeatherInfo) {
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Medium
                 )
+
                 Text(
                     currentWeather?.weather?.firstOrNull()?.description ?: "N/A",
                     color = Color.LightGray
@@ -190,63 +207,21 @@ fun WeatherScreen(weather: WeatherResponse,weatherInfo : WeatherInfo) {
                     Text("H°: ${dailyWeather?.get(0)?.temp?.max}°  ", color = Color.White)
                     Text("L°: ${dailyWeather?.get(0)?.temp?.min}°", color = Color.White)
                 }
+            }
 
+            Spacer(modifier = Modifier.height(250.dp)) // Space for house background
 
-            Image(
-                painter = painterResource(id = R.drawable.ic_house),
-                contentDescription = "Weather House",
-                modifier = Modifier
-                    .size(400.dp)
-            )
-        }
-
-        // 📦 Static Bottom Sheet Overlapping the House Image
-        val sheetState = rememberModalBottomSheetState(
-            skipPartiallyExpanded = false ,
-            confirmValueChange = { true }
-        )
-        val showSheet = remember { mutableStateOf(false) }
-        val scope = rememberCoroutineScope()
-
-        ModalBottomSheet(
-            onDismissRequest = {
-                // Prevent complete dismissal by re-expanding the sheet
-                scope.launch {
-                    showSheet.value = false
-                    sheetState.expand()
-                }
-            },
-            sheetState = sheetState,
-            modifier = Modifier
-                .zIndex(0f)
-                .fillMaxWidth()
-                .fillMaxSize(), // Minimum height to ensure partial visibility
-            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-            containerColor = Color(SecondaryColor.value),
-            contentColor = Color.Black,
-            tonalElevation = 8.dp,
-            scrimColor = Color.White.copy(alpha = 0.02f),
-            dragHandle = {
-                BottomSheetDefaults.DragHandle(
-                    modifier = Modifier.clickable {
-                        // Toggle between partially and fully expanded states
-                        scope.launch {
-                            if (sheetState.currentValue == SheetValue.PartiallyExpanded) {
-                                sheetState.show() // Fully expand
-                            } else {
-                                sheetState.partialExpand() // Return to partial expansion
-                            }
-                        }
-                    }
-                )
-            },
-            windowInsets = WindowInsets(0)
-        ){
+            // Scrollable Weather Details
             Column(
                 modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        color = Color(SecondaryColor.value).copy(alpha = 1f),
+                        shape = RoundedCornerShape(16.dp)
+                    )
                     .padding(16.dp)
-                    .fillMaxHeight()
             ) {
+                // Hourly Forecast
                 Text(
                     "Hourly Forecast",
                     fontSize = 18.sp,
@@ -254,50 +229,56 @@ fun WeatherScreen(weather: WeatherResponse,weatherInfo : WeatherInfo) {
                     color = Color.White
                 )
                 LazyRow {
-                    items(weather?.hourly?.filterNotNull() ?: emptyList()) { hour ->
+                    items(weather.hourly?.filterNotNull() ?: emptyList()) { hour ->
                         HourlyWeatherCard(hour)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // 5-day Forecast
                 Text(
                     "5-day forecast",
                     style = MaterialTheme.typography.titleMedium,
                     color = Color.White
                 )
-                LazyColumn (
+                LazyColumn(
                     modifier = Modifier.height(300.dp)
-                ){
-                    items((weather?.daily?.filterNotNull() ?: emptyList()).take(5)) { day ->
+                ) {
+                    items((weather.daily?.filterNotNull() ?: emptyList()).take(5)) { day ->
                         ForecastRow(day)
                     }
                 }
+
                 Spacer(modifier = Modifier.height(8.dp))
-                val windDeg = weather?.current?.windDeg ?: 0
-                val windSpeed = (weather?.current?.windSpeed as? Double ?: 0.0) * 3.6
-                val windGust = (weather?.current?.windGust as? Double)?.times(3.6)
+
+                // Wind Speed Card
+                val windDeg = weather.current?.windDeg ?: 0
+                val windSpeed = (weather.current?.windSpeed as? Double ?: 0.0) * 3.6
+                val windGust = (weather.current?.windGust as? Double)?.times(3.6)
                 WindSpeedCard(
                     windSpeed = windSpeed,
                     windDeg = windDeg,
                     windGust = windGust
                 )
+
                 Spacer(modifier = Modifier.height(8.dp))
-                Column {
-                    Row{
-                        sunriseAndSet(weatherInfo?.sys?.sunrise ?: 0, weatherInfo?.sys?.sunset ?: 0)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        weatherProperities(
-                            weather?.current?.pressure ?: 0,
-                            weather?.current?.humidity ?: 0,
-                            weather?.current?.clouds?: 0
-                        )
-                    }
+
+                // Sunrise, Sunset, and Weather Properties
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    sunriseAndSet(weatherInfo.sys?.sunrise ?: 0, weatherInfo.sys?.sunset ?: 0)
+                    weatherProperities(
+                        weather.current?.pressure ?: 0,
+                        weather.current?.humidity ?: 0,
+                        weather.current?.clouds ?: 0
+                    )
                 }
             }
         }
     }
-
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -346,10 +327,9 @@ fun WeatherPreview() {
             )
         }
     )
-    val watherInfo =WeatherInfo(name = "Ismaillia",sys = Sys("",5,18))
-    WeatherScreen(mockWeather,watherInfo)
+    val weatherInfo = WeatherInfo(name = "Ismaillia", sys = Sys("", 5, 18))
+    WeatherScreen(mockWeather, weatherInfo)
 }
-
 
 
 @RequiresApi(Build.VERSION_CODES.O)

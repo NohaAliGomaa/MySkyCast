@@ -17,6 +17,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
@@ -51,6 +52,10 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.core.view.WindowCompat
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import com.example.skycast.ui.theme.PrimaryColor
+import com.example.skycast.ui.theme.SecondaryColor
 
 
 class MainActivity : ComponentActivity() {
@@ -58,7 +63,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         val factory = WeatherFactory(WeatherRepositry(WeatherRemoteDataSourceImpl()))
         val viewModel = ViewModelProvider(this, factory).get(WeatherViewModel::class.java)
 
@@ -69,6 +73,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation(
@@ -101,15 +106,18 @@ fun AppNavigation(
     Scaffold(
         bottomBar = {
             if (currentRoute in bottomBarRoutes) {
-                BottomNavigationBar(navController)
+                BottomNavigationBar( navController)
             }
+
         }
-    ) { innerPadding ->
+    )
+    { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = ScreenRout.SplashScreenRoute.route,
             modifier = Modifier.fillMaxSize()
                 .padding(innerPadding)
+
         ) {
             composable(ScreenRout.SplashScreenRoute.route) {
                 SplashScreen {
@@ -253,7 +261,9 @@ fun BottomNavigationBar(navController: NavController) {
     )
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
-    NavigationBar {
+    NavigationBar(
+        containerColor = SecondaryColor.copy(alpha = 1f) // Full opacity background
+    ) {
         items.forEach { item ->
             NavigationBarItem(
                 icon = { Icon(item.icon, contentDescription = item.label) },
@@ -267,11 +277,72 @@ fun BottomNavigationBar(navController: NavController) {
                         }
                     }
                 }
+                , colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = Color.White,
+                    selectedTextColor = Color.White,
+                    indicatorColor = PrimaryColor.copy(alpha = 1f), // Background behind icon
+                    unselectedIconColor = Color.LightGray,
+                    unselectedTextColor = Color.LightGray
+                )
+
             )
         }
     }
 
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TopNavigationBar(navController: NavController) {
+    val navItems = listOf(
+        BottomNavItem("Home", "home_screen", Icons.Default.Home),
+        BottomNavItem("Alert", "alert", Icons.Default.Add),
+        BottomNavItem("Favourite", "favourite", Icons.Default.LocationOn),
+        BottomNavItem("Setting", "setting", Icons.Default.Settings)
+    )
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+
+    TopAppBar(
+        title = { Text(text = "SkyCast") },
+        navigationIcon = {
+            // Optional: Add a back button if needed
+            IconButton(onClick = { navController.navigateUp() }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back"
+                )
+            }
+        },
+        actions = {
+            navItems.forEach { item ->
+                IconButton(onClick = {
+                    navController.navigate(item.route) {
+
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        // Avoid multiple copies of the same destination
+                        launchSingleTop = true
+                        // Restore state when re-selecting the same item
+                        restoreState = true
+                    }
+                }) {
+                    Icon(
+                        imageVector = item.icon,
+                        contentDescription = item.label,
+                        tint = if (currentRoute == item.route) Color.White else Color.LightGray
+                    )
+                }
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.Transparent,
+            titleContentColor = Color.White,
+            actionIconContentColor = Color.White
+        )
+    )
+}
+
 
 data class BottomNavItem(
     val label: String,
