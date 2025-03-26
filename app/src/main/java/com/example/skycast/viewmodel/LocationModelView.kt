@@ -89,12 +89,12 @@ class LocationViewModel(application: Application) : AndroidViewModel(application
     private fun getAddressFromLocation(lat: Double, lon: Double) {
         viewModelScope.launch {
             try {
-                val geocoder = Geocoder(getApplication(), Locale.getDefault())
+                val geocoder = Geocoder(getApplication())
                 val addresses = geocoder.getFromLocation(lat, lon, 1)
 
                 if (!addresses.isNullOrEmpty()) {
                     val address = addresses[0]
-                    val city = address.adminArea ?: "Unknown city"
+                    val city = address.adminArea?: "Unknown city"
                     val fullAddress = buildString {
                         append(address.getAddressLine(0) ?: "")
                         append("\n")

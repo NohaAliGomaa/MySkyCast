@@ -36,9 +36,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.skycast.model.location.LocationHelper
 import com.example.skycast.model.location.LocationState
-import com.example.skycast.model.models.CurrentWeather
-import com.example.skycast.model.models.DailyWeather
-import com.example.skycast.model.models.HourlyWeather
 import com.example.skycast.model.models.WeatherResponse
 import com.example.skycast.viewmodel.LocationViewModel
 import java.time.Instant
@@ -71,9 +68,12 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -95,11 +95,58 @@ import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.*
 import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
+import com.example.skycast.model.models.Current
+import com.example.skycast.model.models.DailyItem
+import com.example.skycast.model.models.HourlyItem
+import com.example.skycast.model.models.Temp
+import com.example.skycast.model.models.WeatherItem
+import com.example.skycast.ui.theme.TertiaryColor
+import java.text.SimpleDateFormat
+import java.util.Date
+import kotlin.math.PI
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.unit.dp
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.PI
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.PI
 
+// Optional for text drawing
+import androidx.compose.ui.graphics.nativeCanvas
+import android.graphics.Typeface
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.zIndex
+import com.example.skycast.model.models.Sys
+import com.example.skycast.model.models.WeatherInfo
+import java.util.TimeZone
+
+//,weatherInfo : WeatherInfo
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun WeatherScreen(weather: WeatherResponse,cityName: String) {
+fun WeatherScreen(weather: WeatherResponse,weatherInfo : WeatherInfo) {
+    val currentWeather = weather.current
+    val dailyWeather = weather.daily
+
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -122,29 +169,26 @@ fun WeatherScreen(weather: WeatherResponse,cityName: String) {
         ) {
             Spacer(modifier = Modifier.height(60.dp))
                 Text(
-                    "${cityName}",
+                    "${weatherInfo.name}",
                     color = Color.White,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Medium
                 )
 
-                val currentWeather = weather.current
-                val dailyWeather = weather.daily
-
                 Text(
-                    "${currentWeather.temp}°C",
+                    "${currentWeather?.temp}°C",
                     color = Color.White,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
-                    currentWeather.weather.firstOrNull()?.description ?: "N/A",
+                    currentWeather?.weather?.firstOrNull()?.description ?: "N/A",
                     color = Color.LightGray
                 )
 
                 Row(modifier = Modifier.padding(8.dp)) {
-                    Text("H°: ${dailyWeather.get(0).temp.max}°  ", color = Color.White)
-                    Text("L°: ${dailyWeather.get(0).temp.min}°", color = Color.White)
+                    Text("H°: ${dailyWeather?.get(0)?.temp?.max}°  ", color = Color.White)
+                    Text("L°: ${dailyWeather?.get(0)?.temp?.min}°", color = Color.White)
                 }
 
 
@@ -158,26 +202,30 @@ fun WeatherScreen(weather: WeatherResponse,cityName: String) {
 
         // 📦 Static Bottom Sheet Overlapping the House Image
         val sheetState = rememberModalBottomSheetState(
-            skipPartiallyExpanded = false
+            skipPartiallyExpanded = false ,
+            confirmValueChange = { true }
         )
+        val showSheet = remember { mutableStateOf(false) }
         val scope = rememberCoroutineScope()
 
         ModalBottomSheet(
             onDismissRequest = {
                 // Prevent complete dismissal by re-expanding the sheet
                 scope.launch {
-                    sheetState.partialExpand()
+                    showSheet.value = false
+                    sheetState.expand()
                 }
             },
             sheetState = sheetState,
             modifier = Modifier
+                .zIndex(0f)
                 .fillMaxWidth()
-                .heightIn(min = 150.dp, max = 600.dp), // Minimum height to ensure partial visibility
+                .fillMaxSize(), // Minimum height to ensure partial visibility
             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
             containerColor = Color(SecondaryColor.value),
             contentColor = Color.Black,
             tonalElevation = 8.dp,
-            scrimColor = Color.Black.copy(alpha = 0.32f),
+            scrimColor = Color.White.copy(alpha = 0.02f),
             dragHandle = {
                 BottomSheetDefaults.DragHandle(
                     modifier = Modifier.clickable {
@@ -194,45 +242,57 @@ fun WeatherScreen(weather: WeatherResponse,cityName: String) {
             },
             windowInsets = WindowInsets(0)
         ){
-
             Column(
                 modifier = Modifier
                     .padding(16.dp)
-
+                    .fillMaxHeight()
             ) {
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text("Hourly Forecast", fontSize = 18.sp, fontWeight = FontWeight.Medium)
+                Text(
+                    "Hourly Forecast",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.White
+                )
                 LazyRow {
-                    items(weather.hourly.take(5)) { hour ->
+                    items(weather?.hourly?.filterNotNull() ?: emptyList()) { hour ->
                         HourlyWeatherCard(hour)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Text("Daily Forecast", fontSize = 18.sp, fontWeight = FontWeight.Medium)
-                LazyColumn {
-                    items(weather.daily.take(3)) { day ->
-                        DailyWeatherItem(day)
+                Text(
+                    "5-day forecast",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White
+                )
+                LazyColumn (
+                    modifier = Modifier.height(300.dp)
+                ){
+                    items((weather?.daily?.filterNotNull() ?: emptyList()).take(5)) { day ->
+                        ForecastRow(day)
                     }
                 }
-
                 Spacer(modifier = Modifier.height(8.dp))
-
-                weather.alerts?.let { alerts ->
-                    if (alerts.isNotEmpty()) {
-                        Text(
-                            "Weather Alerts",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.Red
+                val windDeg = weather?.current?.windDeg ?: 0
+                val windSpeed = (weather?.current?.windSpeed as? Double ?: 0.0) * 3.6
+                val windGust = (weather?.current?.windGust as? Double)?.times(3.6)
+                WindSpeedCard(
+                    windSpeed = windSpeed,
+                    windDeg = windDeg,
+                    windGust = windGust
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Column {
+                    Row{
+                        sunriseAndSet(weatherInfo?.sys?.sunrise ?: 0, weatherInfo?.sys?.sunset ?: 0)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        weatherProperities(
+                            weather?.current?.pressure ?: 0,
+                            weather?.current?.humidity ?: 0,
+                            weather?.current?.clouds?: 0
                         )
-                        alerts.forEach { alert ->
-                            Text("- ${alert.event}", color = Color.Red)
-                        }
                     }
-
                 }
             }
         }
@@ -240,123 +300,418 @@ fun WeatherScreen(weather: WeatherResponse,cityName: String) {
 
 }
 
-
 @RequiresApi(Build.VERSION_CODES.O)
+@Preview(showSystemUi = true)
 @Composable
-fun HourlyWeatherCard(hour: HourlyWeather) {
-    Card(
-        modifier = Modifier
-            .padding(8.dp)
-            .width(100.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            Text("Hour: ${formatTo12HourTime(hour.dt)}")
-            Text("Temp: ${hour.temp}°C")
-            Text(hour.weather.firstOrNull()?.main ?: "Clear")
-        }
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun DailyWeatherItem(day: DailyWeather) {
-    Card(
-        modifier = Modifier
-            .padding(vertical = 4.dp)
-            .fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            Text("Date: ${formatToDayDate(day.dt)}")
-            Text("Day Temp: ${day.temp.day}°C")
-            Text("Night Temp: ${day.temp.night}°C")
-            Text(day.weather.firstOrNull()?.main ?: "Clear")
-        }
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-fun formatTo12HourTime(unixTimestamp: Long): String {
-    val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
-    val zoneId = ZoneId.systemDefault()
-    return Instant.ofEpochSecond(unixTimestamp)
-        .atZone(zoneId)
-        .format(formatter)
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-fun formatToDayDate(unixTimestamp: Long, timeZone: String = "UTC"): String {
-    val formatter = DateTimeFormatter.ofPattern("EEE, dd MMM", Locale.getDefault())
-    val zoneId = ZoneId.of(timeZone)
-    return Instant.ofEpochSecond(unixTimestamp)
-        .atZone(zoneId)
-        .format(formatter)
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CollapsibleWeatherBottomSheet(weather: WeatherResponse) {
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
-
-    val coroutineScope = rememberCoroutineScope()
-
-    // Example trigger: automatically show the bottom sheet on launch
-    LaunchedEffect(Unit) {
-        sheetState.show()
-    }
-
-    ModalBottomSheet(
-        onDismissRequest = {
-            coroutineScope.launch { sheetState.hide() }
+fun WeatherPreview() {
+    val mockWeather = WeatherResponse(
+        current = Current(
+            temp = 24.0,
+            windSpeed = 5.5,
+            windDeg = 90,
+            windGust = 8.0,
+            weather = listOf(
+                WeatherItem(
+                    main = "Clear",
+                    description = "Sunny",
+                    icon = "01d"
+                )
+            )
+        ),
+        hourly = List(4) {
+            HourlyItem(
+                dt = 1618317040,
+                temp = 22.0,
+                windSpeed = 10.5,
+                weather = listOf(
+                    WeatherItem(
+                        main = "Clear",
+                        description = "Sunny",
+                        icon = "01d"
+                    )
+                )
+            )
         },
-        sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        containerColor = Color(SecondaryColor.value),
-        tonalElevation = 8.dp
+        daily = List(4) {
+            DailyItem(
+                dt = 1618317040,
+                temp = Temp(day = 26.0, night = 18.0, max = 27.0, min = 16.0),
+                weather = listOf(
+                    WeatherItem(
+                        main = "Cloudy",
+                        description = "Overcast clouds",
+                        icon = "02d"
+                    )
+                )
+            )
+        }
+    )
+    val watherInfo =WeatherInfo(name = "Ismaillia",sys = Sys("",5,18))
+    WeatherScreen(mockWeather,watherInfo)
+}
+
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun HourlyWeatherCard(hour: HourlyItem) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(110.dp)
+            .padding(vertical = 6.dp, horizontal = 12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.05f) // subtle background
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState())
+                .width(60.dp)
+                .padding(horizontal = 4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .width(40.dp)
-                    .height(4.dp)
-                    .background(Color.Gray, RoundedCornerShape(2.dp))
+            Text(
+                text = formatTime(hour.dt), // Format like "01:00", "Now"
+                 fontSize = 12.sp,
+                 color = Color.White
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-            Text("Hourly Forecast", fontSize = 18.sp, fontWeight = FontWeight.Medium)
-            LazyRow {
-                items(weather.hourly.take(5)) { hour ->
-                    HourlyWeatherCard(hour)
+            WeatherIcon(iconCode = hour.weather?.firstOrNull()?.icon ?: "01d", size = 24.dp)
+
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "${hour.temp}°",
+                style = MaterialTheme.typography.bodyMedium
+                , color = Color.White
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "${hour.windSpeed}km/h", // Add wind speed in your model
+                style = MaterialTheme.typography.labelSmall
+                , color = Color.White
+            )
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun ForecastRow(day: DailyItem) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp, horizontal = 12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.05f) // subtle background
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                WeatherIcon(iconCode = day.weather?.firstOrNull()?.icon ?: "01d", size = 24.dp)
+
+                Spacer(Modifier.width(8.dp))
+
+                Column {
+                    Text(
+                        text = formatDate(day.dt),
+                        style = MaterialTheme.typography.bodyMedium
+                        , color = Color.White
+                    )
+                    Text(
+                        text = day.weather?.firstOrNull()?.main ?: "Clear",
+                        style = MaterialTheme.typography.bodySmall
+                        , color = Color.White
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "${day.temp?.day}° / ${day.temp?.night}°",
+                style = MaterialTheme.typography.bodyMedium
+                , color = Color.White
+            )
+        }
+    }
+}
 
-            Text("Daily Forecast", fontSize = 18.sp, fontWeight = FontWeight.Medium)
-            LazyColumn {
-                items(weather.daily.take(3)) { day ->
-                    DailyWeatherItem(day)
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun formatTime(timestamp: Int?): String {
+    return timestamp?.let {
+        val time = Date(it * 1000L)
+        SimpleDateFormat("h:mm a", Locale.getDefault()).format(time)
+    } ?: ""
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun formatDate(timestamp: Int?): String {
+    return timestamp?.let {
+        val date = Date(it * 1000L)
+        SimpleDateFormat("EEEE, MMM d", Locale.getDefault()).format(date)
+    } ?: ""
+}
+
+@OptIn(ExperimentalGlideComposeApi::class)
+@Composable
+fun WeatherIcon(iconCode: String, size: Dp = 24.dp) {
+    val iconUrl = "https://openweathermap.org/img/wn/${iconCode}@4x.png"
+
+    GlideImage(
+        model = iconUrl,
+        contentDescription = "Weather Icon",
+        modifier = Modifier.size(size),
+        contentScale = ContentScale.Fit
+    )
+}
+@Composable
+fun WindSpeedCard(windSpeed: Double, windDeg: Int, windGust: Double?) {
+    val directionLabel = degToCompassDirection(windDeg)
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(140.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.05f) // subtle background
+        ),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Text Info
+            Column {
+                Text(
+                    text = directionLabel,
+                    style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "${String.format("%.1f", windSpeed)} km/h",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                )
+                windGust?.let {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Gusts up to ${String.format("%.1f", it)} km/h",
+                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White)
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            // Compass
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .padding(8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val center = this.center
+                    val radius = size.minDimension / 2.2f
+                    val arrowLength = size.minDimension / 3f
 
-            weather.alerts?.takeIf { it.isNotEmpty() }?.let { alerts ->
-                Text("Weather Alerts", fontSize = 18.sp, fontWeight = FontWeight.Medium, color = Color.Red)
-                alerts.forEach { alert ->
-                    Text("- ${alert.event}", color = Color.Red, modifier = Modifier.padding(vertical = 2.dp))
+                    // Draw outer circle
+                    drawCircle(
+                        color = Color.White,
+                        style = Stroke(width = 6f)
+                    )
+
+                    // Draw cardinal direction labels
+                    val labelOffset = radius - 10.dp.toPx()
+                    val directions = listOf("N" to 270f, "E" to 0f, "S" to 90f, "W" to 180f)
+                    val textPaint = Paint().asFrameworkPaint().apply {
+                        isAntiAlias = true
+                        color = android.graphics.Color.WHITE
+                        textSize = 12.sp.toPx()
+                        textAlign = android.graphics.Paint.Align.CENTER
+                        typeface = Typeface.DEFAULT_BOLD
+                    }
+
+                    directions.forEach { (label, angle) ->
+                        val rad = angle.toRadians()
+                        val x = center.x + labelOffset * cos(rad)
+                        val y = center.y + labelOffset * sin(rad) + 8.dp.toPx() // vertical centering
+                        drawContext.canvas.nativeCanvas.drawText(label, x, y, textPaint)
+                    }
+// Draw wind arrow with head
+                    val angleRad = windDeg.toFloat().toRadians()
+
+// Main arrow line
+                    val endX = center.x + arrowLength * cos(angleRad)
+                    val endY = center.y + arrowLength * sin(angleRad)
+                    drawLine(
+                        color = Color.White,
+                        start = center,
+                        end = Offset(endX, endY),
+                        strokeWidth = 4f,
+                        cap = StrokeCap.Round
+                    )
+
+// Draw arrowhead
+                    val arrowHeadLength = 12.dp.toPx()
+                    val arrowHeadAngle = 25f.toRadians()
+
+// Left side of arrowhead
+                    val leftX = endX - arrowHeadLength * cos(angleRad - arrowHeadAngle)
+                    val leftY = endY - arrowHeadLength * sin(angleRad - arrowHeadAngle)
+
+// Right side of arrowhead
+                    val rightX = endX - arrowHeadLength * cos(angleRad + arrowHeadAngle)
+                    val rightY = endY - arrowHeadLength * sin(angleRad + arrowHeadAngle)
+
+// Draw left and right lines
+                    drawLine(
+                        color = Color.White,
+                        start = Offset(endX, endY),
+                        end = Offset(leftX, leftY),
+                        strokeWidth = 3f,
+                        cap = StrokeCap.Round
+                    )
+                    drawLine(
+                        color = Color.White,
+                        start = Offset(endX, endY),
+                        end = Offset(rightX, rightY),
+                        strokeWidth = 3f,
+                        cap = StrokeCap.Round
+                    )
                 }
+            }
+        }
+    }
+}
+
+private fun Float.toRadians(): Float = (this * PI / 180f).toFloat()
+
+private fun degToCompassDirection(deg: Int): String {
+    return when ((deg % 360 + 22) / 45) {
+        0 -> "North"
+        1 -> "North-East"
+        2 -> "East"
+        3 -> "South-East"
+        4 -> "South"
+        5 -> "South-West"
+        6 -> "West"
+        7 -> "North-West"
+        else -> "North"
+    }
+}
+
+@Composable
+fun sunriseAndSet(rise : Int, set : Int){
+    Card(
+        modifier = Modifier
+            .padding(8.dp)
+            .width(130.dp)
+            .height(90.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.05f) // subtle background
+        ),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Text Info
+            Column {
+                Text(
+                    text = "${unixToHour(rise.toLong())} Sunrise",
+                    style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
+                    , fontSize = 16.sp
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "${unixToHour(set.toLong())} Sunset",
+                    style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
+                    , fontSize = 16.sp
+                )
+            }
+        }
+    }
+}
+
+fun unixToHour(unixTime: Long): String {
+    val date = Date(unixTime * 1000)
+    val sdf = SimpleDateFormat("h:mm", Locale.getDefault())
+    sdf.timeZone = TimeZone.getDefault()
+    return sdf.format(date)
+}
+@Composable
+fun weatherProperities(pressure : Int, humidity : Int, clouds: Int){
+    Card(
+        modifier = Modifier
+            .padding(12.dp)
+            .width(180.dp)
+            .height(150.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.05f) // subtle background
+        ),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Text Info
+            Column {
+                Text(
+                    text = "Pressure  ${pressure}",
+                    style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
+                    , fontSize = 16.sp
+                )
+                Divider(
+                    color = Color.White.copy(alpha = 0.5f),
+                    thickness = 1.dp,
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .fillMaxWidth(0.8f)
+                )
+                Text(
+                    text = "Humidity  ${humidity}",
+                    style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
+                    , fontSize = 16.sp
+                )
+                Divider(
+                    color = Color.White.copy(alpha = 0.5f),
+                    thickness = 1.dp,
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .fillMaxWidth(0.8f)
+                )
+                Text(
+                    text = "Clouds  ${clouds}",
+                    style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
+                    , fontSize = 16.sp
+                )
             }
         }
     }

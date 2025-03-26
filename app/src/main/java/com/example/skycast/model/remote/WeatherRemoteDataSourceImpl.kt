@@ -1,18 +1,22 @@
 package com.example.skycast.model.remote
 
 import android.util.Log
+import com.example.skycast.model.models.WeatherInfo
 import com.example.skycast.model.models.WeatherResponse
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 
 class WeatherRemoteDataSourceImpl :WeatherRemoteDataSource {
     private val WeatherApi: WeatherApiService = RetrofitClient.apiService
 
     override fun getCurrentWeather(lat: Double,
                                    lon: Double,
+                                    lang:String,
                                    units: String
                                   ): Flow<WeatherResponse> = flow {
-       val response = WeatherApi.getCurrentWeather(lat,lon,units)
+       val response = WeatherApi.getCurrentWeather(lat,lon,lang,units)
         Log.i("TAG", "Fetched ${response.body()?.current} products from API")
         if (response.isSuccessful && response.body() != null) {
             Log.i("TAG", "Successed ${response.body()?.current} products from API")
@@ -21,4 +25,18 @@ class WeatherRemoteDataSourceImpl :WeatherRemoteDataSource {
             throw Exception("API error: ${response.code()} - ${response.message()}")
         }
     }
+    override fun getWeatherInfo(lat: Double, lon: Double): Flow<WeatherInfo> = flow {
+        val response = WeatherApi.getWeatherInfo(lat, lon)
+        Log.d("WeatherRemote", "Raw response: ${response.raw()}")
+        Log.d("WeatherRemote", "Error body: ${response.errorBody()?.string()}")
+
+        if (response.isSuccessful && response.body() != null) {
+            emit(response.body()!!)
+        } else {
+            throw Exception("API error: ${response.code()} - ${response.message()}")
+        }
+    }.flowOn(Dispatchers.IO)
+
+
+
 }
