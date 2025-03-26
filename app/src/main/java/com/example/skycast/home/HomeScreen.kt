@@ -269,7 +269,11 @@ fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    sunriseAndSet(weatherInfo.sys?.sunrise ?: 0, weatherInfo.sys?.sunset ?: 0)
+                    Column {
+                        uvandRealFeel((weather.current?.feelsLike?: " ").toString(),(weather.current?.uvi?: " ").toString())
+                        sunriseAndSet(weatherInfo.sys?.sunrise ?: 0, weatherInfo.sys?.sunset ?: 0)
+                    }
+
                     weatherProperities(
                         weather.current?.pressure ?: 0,
                         weather.current?.humidity ?: 0,
@@ -602,7 +606,7 @@ fun sunriseAndSet(rise : Int, set : Int){
     Card(
         modifier = Modifier
             .padding(8.dp)
-            .width(130.dp)
+            .width(140.dp)
             .height(90.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
@@ -620,13 +624,13 @@ fun sunriseAndSet(rise : Int, set : Int){
             // Text Info
             Column {
                 Text(
-                    text = "${unixToHour(rise.toLong())} Sunrise",
+                    text = "${unixToHour(rise.toLong())}  Sunrise",
                     style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
                     , fontSize = 16.sp
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "${unixToHour(set.toLong())} Sunset",
+                    text = "${unixToHour(set.toLong())}  Sunset",
                     style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
                     , fontSize = 16.sp
                 )
@@ -692,6 +696,39 @@ fun weatherProperities(pressure : Int, humidity : Int, clouds: Int){
                     style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
                     , fontSize = 16.sp
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun uvandRealFeel(real : String, uv : String ){
+    Card(
+        modifier = Modifier
+            .padding(8.dp)
+            .width(140.dp)
+            .height(50.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.05f) // subtle background
+        ),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Text Info
+            Column {
+                Text(
+                    text = "Real feel ${real} ",
+                    style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
+                    , fontSize = 16.sp
+                )
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }

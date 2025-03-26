@@ -61,7 +61,7 @@ data class Current(
     val uvi: Any? = null,
     val pressure: Int? = null,
     val clouds: Int? = null,
-    val feelsLike: Any? = null,
+    @SerializedName("feels_like")val feelsLike: Any? = null,
     @SerializedName("wind_gust") val windGust: Any? = null,
     val dt: Int? = null,
     @SerializedName("wind_deg") val windDeg: Int? = null,
