@@ -270,7 +270,7 @@ fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
-                        uvandRealFeel((weather.current?.feelsLike?: " ").toString(),(weather.current?.uvi?: " ").toString())
+                        uvandRealFeel(weather.current?.feelsLike?:0.0)
                         sunriseAndSet(weatherInfo.sys?.sunrise ?: 0, weatherInfo.sys?.sunset ?: 0)
                     }
 
@@ -606,7 +606,7 @@ fun sunriseAndSet(rise : Int, set : Int){
     Card(
         modifier = Modifier
             .padding(8.dp)
-            .width(140.dp)
+            .width(160.dp)
             .height(90.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
@@ -638,10 +638,9 @@ fun sunriseAndSet(rise : Int, set : Int){
         }
     }
 }
-
 fun unixToHour(unixTime: Long): String {
     val date = Date(unixTime * 1000)
-    val sdf = SimpleDateFormat("h:mm", Locale.getDefault())
+    val sdf = SimpleDateFormat("h:mm a", Locale.getDefault())
     sdf.timeZone = TimeZone.getDefault()
     return sdf.format(date)
 }
@@ -668,7 +667,7 @@ fun weatherProperities(pressure : Int, humidity : Int, clouds: Int){
             // Text Info
             Column {
                 Text(
-                    text = "Pressure  ${pressure}",
+                    text = "Pressure   ${pressure}mbar",
                     style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
                     , fontSize = 16.sp
                 )
@@ -680,7 +679,7 @@ fun weatherProperities(pressure : Int, humidity : Int, clouds: Int){
                         .fillMaxWidth(0.8f)
                 )
                 Text(
-                    text = "Humidity  ${humidity}",
+                    text = "Humidity  ${humidity}%",
                     style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
                     , fontSize = 16.sp
                 )
@@ -692,7 +691,7 @@ fun weatherProperities(pressure : Int, humidity : Int, clouds: Int){
                         .fillMaxWidth(0.8f)
                 )
                 Text(
-                    text = "Clouds  ${clouds}",
+                    text = "Clouds   ${clouds}",
                     style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
                     , fontSize = 16.sp
                 )
@@ -702,11 +701,11 @@ fun weatherProperities(pressure : Int, humidity : Int, clouds: Int){
 }
 
 @Composable
-fun uvandRealFeel(real : String, uv : String ){
+fun uvandRealFeel(real : Double){
     Card(
         modifier = Modifier
             .padding(8.dp)
-            .width(140.dp)
+            .width(160.dp)
             .height(50.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
@@ -724,7 +723,7 @@ fun uvandRealFeel(real : String, uv : String ){
             // Text Info
             Column {
                 Text(
-                    text = "Real feel ${real} ",
+                    text = "Real feel ${real}°",
                     style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
                     , fontSize = 16.sp
                 )
