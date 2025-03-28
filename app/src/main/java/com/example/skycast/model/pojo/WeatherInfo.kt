@@ -1,4 +1,4 @@
-package com.example.skycast.model.models
+package com.example.skycast.model.pojo
 
 data class WeatherInfo(
 	val visibility: Int? = null,

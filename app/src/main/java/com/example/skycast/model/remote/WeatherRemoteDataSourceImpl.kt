@@ -1,8 +1,8 @@
 package com.example.skycast.model.remote
 
 import android.util.Log
-import com.example.skycast.model.models.WeatherInfo
-import com.example.skycast.model.models.WeatherResponse
+import com.example.skycast.model.pojo.WeatherInfo
+import com.example.skycast.model.pojo.WeatherResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

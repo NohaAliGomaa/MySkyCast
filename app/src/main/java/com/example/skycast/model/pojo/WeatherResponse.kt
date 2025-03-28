@@ -1,16 +1,25 @@
-package com.example.skycast.model.models
+package com.example.skycast.model.pojo
 
+import androidx.room.ColumnInfo
+import androidx.room.Embedded
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
+import com.example.skycast.model.local.Converters
 import com.google.gson.annotations.SerializedName
 
+@Entity(tableName = "weather")
 data class WeatherResponse(
-    val current: Current? = null,
+    val lat: Any? = null,
+    val lon: Any? = null,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @Embedded val current: Current? = null,
     val timezone: String? = null,
     val timezoneOffset: Int? = null,
-    val daily: List<DailyItem?>? = null,
-    val lon: Any? = null,
-    val hourly: List<HourlyItem?>? = null,
-    val minutely: List<MinutelyItem?>? = null,
-    val lat: Any? = null
+    @TypeConverters(Converters::class) val daily: List<DailyItem?>? = null,
+    @TypeConverters(Converters::class) val hourly: List<HourlyItem?>? = null,
+    @TypeConverters(Converters::class) val minutely: List<MinutelyItem?>? = null,
+    var isFavorite:Boolean? = false
 )
 
 data class HourlyItem(
@@ -25,10 +34,10 @@ data class HourlyItem(
     val pop: Int? = null,
     val windDeg: Int? = null,
     val dewPoint: Any? = null,
-    val weather: List<WeatherItem?>? = null,
+    @TypeConverters(Converters::class) val weather: List<WeatherItem?>? = null,
     val humidity: Int? = null,
     val windSpeed: Any? = null,
-    val rain: Rain? = null
+    @Embedded val rain: Rain? = null
 )
 
 data class DailyItem(
@@ -36,20 +45,20 @@ data class DailyItem(
     val summary: String? = null,
     val rain: Any? = null,
     val sunrise: Int? = null,
-    val temp: Temp? = null,
+    @Embedded(prefix = "temp_")val temp: Temp? = null,
     val moonPhase: Any? = null,
     val uvi: Any? = null,
     val moonrise: Int? = null,
     val pressure: Int? = null,
     val clouds: Int? = null,
-    val feelsLike: FeelsLike? = null,
+    @Embedded(prefix = "feelsLike_")val feelsLike: FeelsLike? = null,
     val windGust: Any? = null,
     val dt: Int? = null,
     val pop: Int? = null,
     val windDeg: Int? = null,
     val dewPoint: Any? = null,
     val sunset: Int? = null,
-    val weather: List<WeatherItem?>? = null,
+    @TypeConverters(Converters::class) val weather: List<WeatherItem?>? = null,
     val humidity: Int? = null,
     val windSpeed: Any? = null
 )
@@ -67,7 +76,7 @@ data class Current(
     @SerializedName("wind_deg") val windDeg: Int? = null,
     val dewPoint: Any? = null,
     val sunset: Int? = null,
-    val weather: List<WeatherItem?>? = null,
+    @TypeConverters(Converters::class) val weather: List<WeatherItem?>? = null,
     val humidity: Int? = null,
     @SerializedName("wind_speed") val windSpeed: Any? = null
 )
@@ -96,7 +105,7 @@ data class WeatherItem(
 )
 
 data class Rain(
-    val jsonMember1h: Any? = null
+    @ColumnInfo(name = "1h") val jsonMember1h: Any? = null
 )
 
 data class MinutelyItem(

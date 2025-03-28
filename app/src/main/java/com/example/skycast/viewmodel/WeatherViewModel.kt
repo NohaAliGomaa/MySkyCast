@@ -4,9 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.skycast.model.models.WeatherInfo
+import com.example.skycast.model.pojo.WeatherInfo
 import com.example.skycast.model.repositries.WeatherRepositry
-import com.example.skycast.model.result.WeatherInfoResult
 import com.example.skycast.model.result.WeatherResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

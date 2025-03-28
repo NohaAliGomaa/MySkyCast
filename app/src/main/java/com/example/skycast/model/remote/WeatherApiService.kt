@@ -1,9 +1,8 @@
 package com.example.skycast.model.remote
 
-import com.example.skycast.model.models.WeatherInfo
-import com.example.skycast.model.models.WeatherResponse
+import com.example.skycast.model.pojo.WeatherInfo
+import com.example.skycast.model.pojo.WeatherResponse
 import com.example.skycast.model.util.AppConstants
-import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query

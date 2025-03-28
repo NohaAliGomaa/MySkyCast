@@ -1,4 +1,4 @@
-package com.example.skycast.model.models
+package com.example.skycast.model.pojo
 
 data class WeatherAlert(
     val sender_name: String,
