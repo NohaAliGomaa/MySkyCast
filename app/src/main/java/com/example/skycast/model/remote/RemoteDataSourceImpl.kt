@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 
-class WeatherRemoteDataSourceImpl :WeatherRemoteDataSource {
+class RemoteDataSourceImpl :IRemoteDataSource {
     private val WeatherApi: WeatherApiService = RetrofitClient.apiService
 
     override fun getCurrentWeather(lat: Double,

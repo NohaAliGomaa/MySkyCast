@@ -64,15 +64,17 @@ import androidx.compose.foundation.layout.*
 // Optional for text drawing
 import androidx.compose.ui.graphics.nativeCanvas
 import android.graphics.Typeface
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Paint
 import com.example.skycast.model.pojo.Sys
 import com.example.skycast.model.pojo.WeatherInfo
+import com.example.skycast.viewmodel.WeatherViewModel
 import java.util.TimeZone
 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo) {
+fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo,isOnline : Boolean) {
     val currentWeather = weather.current
     val dailyWeather = weather.daily
     val scrollState = rememberScrollState()
@@ -116,12 +118,21 @@ fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    "${weatherInfo.name}",
-                    color = Color.White,
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                if(isOnline){
+                    Text(
+                        "${weatherInfo.name}",
+                        color = Color.White,
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }else{
+                    Text(
+                        "${weather.name}",
+                        color = Color.White,
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
 
                 Text(
                     "${currentWeather?.temp}°C",
@@ -203,7 +214,17 @@ fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo) {
                 ) {
                     Column {
                         uvandRealFeel(weather.current?.feelsLike?:0.0)
-                        sunriseAndSet(weatherInfo.sys?.sunrise ?: 0, weatherInfo.sys?.sunset ?: 0)
+                        if (isOnline) {
+                            sunriseAndSet(
+                                weatherInfo.sys?.sunrise ?: 0,
+                                weatherInfo.sys?.sunset ?: 0
+                            )
+                        }else{
+                            sunriseAndSet(
+                                weather.sunriseInfo ?: 0,
+                                weather.sunsetInfo ?: 0
+                            )
+                        }
                     }
 
                     weatherProperities(
@@ -264,7 +285,7 @@ fun WeatherPreview() {
         }
     )
     val weatherInfo = WeatherInfo(name = "Ismaillia", sys = Sys("", 5, 18))
-    WeatherScreen(mockWeather, weatherInfo)
+    WeatherScreen(mockWeather, weatherInfo,true)
 }
 
 

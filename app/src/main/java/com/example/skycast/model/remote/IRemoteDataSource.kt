@@ -4,7 +4,7 @@ import com.example.skycast.model.pojo.WeatherInfo
 import com.example.skycast.model.pojo.WeatherResponse
 import kotlinx.coroutines.flow.Flow
 
-interface WeatherRemoteDataSource {
+interface IRemoteDataSource {
     fun getCurrentWeather(lat: Double,
                            lon: Double,
                          lang:String,

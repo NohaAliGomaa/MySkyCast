@@ -3,7 +3,6 @@ package com.example.skycast
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -14,7 +13,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -38,9 +36,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.*
 import com.example.skycast.ui.theme.SkyCastTheme
 import com.example.skycast.home.WeatherScreen
-import com.example.skycast.model.remote.WeatherRemoteDataSourceImpl
+import com.example.skycast.model.remote.RemoteDataSourceImpl
 import com.example.skycast.model.repositries.WeatherRepositry
-import com.example.skycast.model.result.WeatherInfoResult
 import com.example.skycast.model.result.WeatherResult
 import com.example.skycast.model.route.ScreenRout
 import com.example.skycast.model.util.AppConstants
@@ -52,23 +49,25 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.core.view.WindowCompat
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import com.example.skycast.model.local.LocalDataSource
 import com.example.skycast.ui.theme.PrimaryColor
 import com.example.skycast.ui.theme.SecondaryColor
 
 
 class MainActivity : ComponentActivity() {
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val factory = WeatherFactory(WeatherRepositry(WeatherRemoteDataSourceImpl()))
+        val isOnline =WeatherViewModel.NetworkUtils.isInternetAvailable(this)
+        val factory = WeatherFactory(WeatherRepositry(RemoteDataSourceImpl(),LocalDataSource(this)),this)
         val viewModel = ViewModelProvider(this, factory).get(WeatherViewModel::class.java)
 
         setContent {
             SkyCastTheme {
-                AppNavigation(viewModel)
+                AppNavigation(viewModel,isOnline)
             }
         }
     }
@@ -78,8 +77,11 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppNavigation(
     viewModel: WeatherViewModel,
+    isOnline : Boolean,
     locationViewModel: LocationViewModel = viewModel()
+
 ) {
+
     val context = LocalContext.current
     val locationState by locationViewModel.locationState.collectAsState()
     val weather by viewModel.weather.collectAsStateWithLifecycle()
@@ -204,7 +206,6 @@ fun AppNavigation(
                                 units = AppConstants.WEATHER_UNIT
                             )
                             viewModel.getWeatherInfo(lat = lat, lon = lon)
-                            Log.i("TAG", "AppNavigation: ${weatherInfo.name}")
                         }
                     }
                 }
@@ -216,7 +217,7 @@ fun AppNavigation(
                     }
 
                     is WeatherResult.Success -> {
-                        WeatherScreen(currentWeather.data, weatherInfo)
+                        WeatherScreen(currentWeather.data,weatherInfo,isOnline)
                     }
 
                     is WeatherResult.Failure -> {

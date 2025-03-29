@@ -89,7 +89,7 @@ dependencies {
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose-android:2.8.7")
     //Room
-    val room_version = "2.6.1"
+    val room_version = "2.6.0"
     implementation("androidx.room:room-runtime:$room_version")
     // Kotlin Symbol Processing (KSP)
     ksp("androidx.room:room-compiler:$room_version")
@@ -122,6 +122,8 @@ dependencies {
 
     // Optional:
     implementation("androidx.activity:activity-compose:1.8.1")
+    implementation ("com.google.code.gson:gson:2.10.1") // or latest version
+
 
 
     //Room

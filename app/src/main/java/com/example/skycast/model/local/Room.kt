@@ -12,6 +12,7 @@ import androidx.room.RoomDatabase
 import androidx.room.Transaction
 import androidx.room.TypeConverters
 import androidx.room.Update
+import com.example.skycast.model.pojo.WeatherInfo
 import com.example.skycast.model.pojo.WeatherResponse
 import kotlinx.coroutines.flow.Flow
 
@@ -48,14 +49,13 @@ interface WeatherDao {
 
 }
 
-
-@Database(entities = arrayOf(WeatherResponse::class), version = 26)
+@Database(entities = arrayOf(WeatherResponse::class,WeatherInfo::class), version = 2)
 @TypeConverters(Converters::class)
 abstract class WeatherDataBse : RoomDatabase() {
     abstract fun getWeatherDao(): WeatherDao
 //    abstract fun alertDao():AlertDao
     companion object {
-        @Volatile
+//        @Volatile
         private var INSTANCE: WeatherDataBse? = null
         fun getInstance(ctx: Context): WeatherDataBse {
             return INSTANCE ?: synchronized(this) {
