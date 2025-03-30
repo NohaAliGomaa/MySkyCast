@@ -13,10 +13,13 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Settings
@@ -49,10 +52,13 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.Brush
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.skycast.model.local.LocalDataSource
+import com.example.skycast.model.util.NetworkUtils
 import com.example.skycast.ui.theme.PrimaryColor
 import com.example.skycast.ui.theme.SecondaryColor
+import com.example.skycast.ui.theme.TertiaryColor
 
 
 class MainActivity : ComponentActivity() {
@@ -61,7 +67,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val isOnline =WeatherViewModel.NetworkUtils.isInternetAvailable(this)
+        val isOnline = NetworkUtils.isInternetAvailable(this)
         val factory = WeatherFactory(WeatherRepositry(RemoteDataSourceImpl(),LocalDataSource(this)),this)
         val viewModel = ViewModelProvider(this, factory).get(WeatherViewModel::class.java)
 
@@ -257,13 +263,24 @@ fun BottomNavigationBar(navController: NavController) {
     val items = listOf(
         BottomNavItem("Home", "home_screen", Icons.Default.Home),
         BottomNavItem("Alert", "alert", Icons.Default.Add),
-        BottomNavItem("Favourite", "favourite", Icons.Default.LocationOn),
+        BottomNavItem("Favourite", "favourite", Icons.Default.Favorite),
         BottomNavItem("Setting", "setting", Icons.Default.Settings)
     )
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
-    NavigationBar(
-        containerColor = SecondaryColor.copy(alpha = 1f) // Full opacity background
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color(TertiaryColor.value),
+                        Color(PrimaryColor.value)
+                    )
+                )
+            )
+    ){ NavigationBar(
+        containerColor = Color.Transparent // Transparent to show the Box's gradient
     ) {
         items.forEach { item ->
             NavigationBarItem(
@@ -277,8 +294,7 @@ fun BottomNavigationBar(navController: NavController) {
                             launchSingleTop = true
                         }
                     }
-                }
-                , colors = NavigationBarItemDefaults.colors(
+                }, colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = Color.White,
                     selectedTextColor = Color.White,
                     indicatorColor = PrimaryColor.copy(alpha = 1f), // Background behind icon
@@ -289,62 +305,9 @@ fun BottomNavigationBar(navController: NavController) {
             )
         }
     }
+    }
 
 }
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TopNavigationBar(navController: NavController) {
-    val navItems = listOf(
-        BottomNavItem("Home", "home_screen", Icons.Default.Home),
-        BottomNavItem("Alert", "alert", Icons.Default.Add),
-        BottomNavItem("Favourite", "favourite", Icons.Default.LocationOn),
-        BottomNavItem("Setting", "setting", Icons.Default.Settings)
-    )
-    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
-
-    TopAppBar(
-        title = { Text(text = "SkyCast") },
-        navigationIcon = {
-            // Optional: Add a back button if needed
-            IconButton(onClick = { navController.navigateUp() }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back"
-                )
-            }
-        },
-        actions = {
-            navItems.forEach { item ->
-                IconButton(onClick = {
-                    navController.navigate(item.route) {
-
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        // Avoid multiple copies of the same destination
-                        launchSingleTop = true
-                        // Restore state when re-selecting the same item
-                        restoreState = true
-                    }
-                }) {
-                    Icon(
-                        imageVector = item.icon,
-                        contentDescription = item.label,
-                        tint = if (currentRoute == item.route) Color.White else Color.LightGray
-                    )
-                }
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.Transparent,
-            titleContentColor = Color.White,
-            actionIconContentColor = Color.White
-        )
-    )
-}
-
-
 data class BottomNavItem(
     val label: String,
     val route: String,

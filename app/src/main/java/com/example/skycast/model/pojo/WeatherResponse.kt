@@ -6,7 +6,7 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
-import com.example.skycast.model.local.Converters
+import com.example.skycast.model.util.Converters
 import com.google.gson.annotations.SerializedName
 
 @Keep

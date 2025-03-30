@@ -65,9 +65,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.ui.graphics.nativeCanvas
 import android.graphics.Typeface
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Paint
 import com.example.skycast.model.pojo.Sys
 import com.example.skycast.model.pojo.WeatherInfo
+import com.example.skycast.ui.theme.PrimaryColor
+import com.example.skycast.ui.theme.TertiaryColor
 import com.example.skycast.viewmodel.WeatherViewModel
 import java.util.TimeZone
 
@@ -80,26 +83,39 @@ fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo,isOnline : 
     val scrollState = rememberScrollState()
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(PrimaryColor.value).copy(alpha = 0.5f))
+
     ) {
         // Background Image with House
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(TertiaryColor.value),
+                            Color(PrimaryColor.value)
+                        )
+                    )
+                ),
             contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.weather_bg),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
+//            Image(
+//                painter = painterResource(id = R.drawable.weather_bg),
+//                contentDescription = null,
+//                modifier = Modifier.fillMaxSize(),
+//                contentScale = ContentScale.Crop
+//            )
 
             Image(
                 painter = painterResource(id = R.drawable.ic_house),
                 contentDescription = "Weather House",
                 modifier = Modifier
                     .size(400.dp)
-                    .offset(y = 100.dp)
+                    .offset(y = 10.dp)
+
             )
         }
 
@@ -108,8 +124,6 @@ fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo,isOnline : 
             modifier = Modifier
                 .fillMaxSize()
                 .fillMaxHeight()
-                .verticalScroll(scrollState)
-
         ) {
             Spacer(modifier = Modifier.height(60.dp))
 
@@ -117,6 +131,7 @@ fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo,isOnline : 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
+                    .verticalScroll(scrollState)
             ) {
                 if(isOnline){
                     Text(
@@ -152,17 +167,24 @@ fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo,isOnline : 
                 }
             }
 
-            Spacer(modifier = Modifier.height(250.dp)) // Space for house background
+            Spacer(modifier = Modifier.height(150.dp)) // Space for house background
 
             // Scrollable Weather Details
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        color = Color(SecondaryColor.value).copy(alpha = 1f),
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                Color(TertiaryColor.value),
+                                Color(PrimaryColor.value)
+
+                            )
+                        ),
                         shape = RoundedCornerShape(16.dp)
                     )
                     .padding(16.dp)
+                    .verticalScroll(scrollState)
             ) {
                 // Hourly Forecast
                 Text(
@@ -299,7 +321,7 @@ fun HourlyWeatherCard(hour: HourlyItem) {
             .height(110.dp)
             .padding(vertical = 6.dp, horizontal = 12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.05f) // subtle background
+            containerColor =Color(PrimaryColor.value).copy(alpha = 0.25f)// subtle background
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -342,9 +364,10 @@ fun ForecastRow(day: DailyItem) {
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .fillMaxWidth()
+            .wrapContentHeight()
             .padding(vertical = 6.dp, horizontal = 12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.05f) // subtle background
+            containerColor = Color(PrimaryColor.value).copy(alpha = 0.25f)// subtle background
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {

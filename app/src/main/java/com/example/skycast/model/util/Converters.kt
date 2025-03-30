@@ -1,4 +1,4 @@
-package com.example.skycast.model.local
+package com.example.skycast.model.util
 
 import androidx.room.TypeConverter
 import com.example.skycast.model.pojo.DailyItem
@@ -7,7 +7,6 @@ import com.example.skycast.model.pojo.MinutelyItem
 import com.example.skycast.model.pojo.WeatherItem
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.example.skycast.model.pojo.*
 
 
 class Converters {

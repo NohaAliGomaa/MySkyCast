@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -17,6 +18,8 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.skycast.R
+import com.example.skycast.ui.theme.PrimaryColor
+import com.example.skycast.ui.theme.TertiaryColor
 import kotlinx.coroutines.delay
 
 @Composable
@@ -38,7 +41,14 @@ fun SplashScreen(onFinish: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black),
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color(TertiaryColor.value),
+                        Color(PrimaryColor.value)
+                    )
+                )
+            ),
         contentAlignment = Alignment.Center
     ) {
         LottieAnimation(

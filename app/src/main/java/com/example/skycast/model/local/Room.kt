@@ -14,6 +14,7 @@ import androidx.room.TypeConverters
 import androidx.room.Update
 import com.example.skycast.model.pojo.WeatherInfo
 import com.example.skycast.model.pojo.WeatherResponse
+import com.example.skycast.model.util.Converters
 import kotlinx.coroutines.flow.Flow
 
 @Dao

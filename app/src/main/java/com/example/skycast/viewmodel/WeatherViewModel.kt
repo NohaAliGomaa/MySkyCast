@@ -15,6 +15,7 @@ import com.example.skycast.model.pojo.WeatherResponse
 import com.example.skycast.model.repositries.WeatherRepositry
 import com.example.skycast.model.result.LocalDataState
 import com.example.skycast.model.result.WeatherResult
+import com.example.skycast.model.util.NetworkUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,17 +36,7 @@ class WeatherViewModel(private val repo :WeatherRepositry,
     val favWeather: StateFlow<LocalDataState>  = _favWeather.asStateFlow()
 
 
-    object NetworkUtils {
-        fun isInternetAvailable(context: Context): Boolean {
-            val connectivityManager =
-                context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            val network = connectivityManager.activeNetwork ?: return false
-            val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
-            return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
-                    capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
-                    capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
-        }
-    }
+
 
 
     fun getCurrentWeather(lat: Double,
