@@ -125,11 +125,19 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.8.1")
     implementation ("com.google.code.gson:gson:2.10.1") // or latest version
 
-//compose
-//    implementation ("androidx.compose.material3:material3:1.2.0")
-//    implementation ("androidx.compose.ui:ui-tooling:1.5.0")
-//    implementation( "androidx.compose.foundation:foundation:1.5.0")
-//    implementation ("coil-kt:coil-compose:2.2.2")
+    //map
+    // Maps Compose
+    implementation("com.google.maps.android:maps-compose:2.11.4")
+
+// Google Maps SDK
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+
+// Places SDK
+    implementation("com.google.android.libraries.places:places:3.3.0")
+
+//    implementation(" com.google.android.gms:play-services-base:18.2.0")
+
+
 
 
     //Room

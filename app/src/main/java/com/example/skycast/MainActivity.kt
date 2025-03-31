@@ -54,11 +54,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.Brush
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import com.example.skycast.favourite.FavWeatherScreen
+import com.example.skycast.map.LocationScreen
 import com.example.skycast.model.local.LocalDataSource
+import com.example.skycast.model.result.LocalDataState
 import com.example.skycast.model.util.NetworkUtils
 import com.example.skycast.ui.theme.PrimaryColor
 import com.example.skycast.ui.theme.SecondaryColor
 import com.example.skycast.ui.theme.TertiaryColor
+import com.example.skycast.viewmodel.LocationFactory
 
 
 class MainActivity : ComponentActivity() {
@@ -70,10 +74,13 @@ class MainActivity : ComponentActivity() {
         val isOnline = NetworkUtils.isInternetAvailable(this)
         val factory = WeatherFactory(WeatherRepositry(RemoteDataSourceImpl(),LocalDataSource(this)),this)
         val viewModel = ViewModelProvider(this, factory).get(WeatherViewModel::class.java)
+        val app = application as MyApp
+        val locationFactory = LocationFactory(app)
+        val locationViewModel = ViewModelProvider(this, locationFactory).get(LocationViewModel::class.java)
 
         setContent {
             SkyCastTheme {
-                AppNavigation(viewModel,isOnline)
+                AppNavigation(viewModel,isOnline,locationViewModel)
             }
         }
     }
@@ -84,17 +91,18 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation(
     viewModel: WeatherViewModel,
     isOnline : Boolean,
-    locationViewModel: LocationViewModel = viewModel()
+    locationViewModel: LocationViewModel
 
 ) {
 
     val context = LocalContext.current
     val locationState by locationViewModel.locationState.collectAsState()
     val weather by viewModel.weather.collectAsStateWithLifecycle()
+    val favWeather by viewModel.favWeather.collectAsStateWithLifecycle()
     val weatherInfo by viewModel.weatherInfo.collectAsState()
     //hande bottom bar
     val navController = rememberNavController()
-    val bottomBarRoutes = listOf("alert", "favourite", "setting","home_screen")
+    val bottomBarRoutes = listOf("alert", "Fav_screen", "setting","home_screen","location")
     // Check current route
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
@@ -240,12 +248,28 @@ fun AppNavigation(
                 }
             }
 
-            composable("favourite") {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Favourite Screen")
+            composable("Fav_screen") {
+                when (val currentWeather = favWeather) {
+                    is LocalDataState.Loading -> {
+                        CircularProgressIndicator()
+                    }
+
+                    is LocalDataState.Success -> {
+                        FavWeatherScreen(currentWeather.data?: emptyList(),
+                            { navController.navigate("location") })
+                    }
+
+                    is LocalDataState.Fail-> {
+                        Text(
+                            text = "Weather Error: ${currentWeather.msg.message}",
+                            color = Color.Red
+                        )
+                    }
                 }
             }
-
+            composable("location") {
+                LocationScreen(locationViewModel)
+            }
             composable("setting") {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Settings Screen")
@@ -263,7 +287,7 @@ fun BottomNavigationBar(navController: NavController) {
     val items = listOf(
         BottomNavItem("Home", "home_screen", Icons.Default.Home),
         BottomNavItem("Alert", "alert", Icons.Default.Add),
-        BottomNavItem("Favourite", "favourite", Icons.Default.Favorite),
+        BottomNavItem("Favourite", "Fav_screen", Icons.Default.Favorite),
         BottomNavItem("Setting", "setting", Icons.Default.Settings)
     )
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route

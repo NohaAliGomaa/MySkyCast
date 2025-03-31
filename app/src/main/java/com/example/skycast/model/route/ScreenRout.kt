@@ -7,4 +7,8 @@ sealed class ScreenRout(val route: String) {
     object SplashScreenRoute : ScreenRout("splash_screen")
     @Serializable
     object HomeScreenRoute : ScreenRout("home_screen")
+    @Serializable
+    object FavScreenRoute : ScreenRout("Fav_screen")
+    @Serializable
+    object LocationcreenRoute : ScreenRout("location")
 }

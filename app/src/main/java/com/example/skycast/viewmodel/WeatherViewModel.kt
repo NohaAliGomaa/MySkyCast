@@ -32,7 +32,7 @@ class WeatherViewModel(private val repo :WeatherRepositry,
     private val _currentWeatherInfo = MutableStateFlow<WeatherInfo>(WeatherInfo(name = "Sorry"))
     val weatherInfo: StateFlow<WeatherInfo> = _currentWeatherInfo.asStateFlow()
 
-    private val _favWeather = MutableStateFlow<LocalDataState>(LocalDataState.Loading)
+    private val _favWeather = MutableStateFlow<LocalDataState>(LocalDataState.Success(emptyList()))
     val favWeather: StateFlow<LocalDataState>  = _favWeather.asStateFlow()
 
 
@@ -56,7 +56,9 @@ class WeatherViewModel(private val repo :WeatherRepositry,
                             currentWeather.sunsetInfo = weatherIF.sys?.sunset
                             currentWeather.sunriseInfo = weatherIF.sys?.sunrise
                         }
+
                             repo.insertCurrentWeather(currentWeather)
+
                     }
             }
             else{
