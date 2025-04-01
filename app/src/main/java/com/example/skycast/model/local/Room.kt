@@ -31,7 +31,7 @@ interface WeatherDao {
     @Query("DELETE FROM weather where isFavorite= false")
     suspend fun deleteCurrent():Int
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCurrentWeather(weather :WeatherResponse): Long
 
     @Query("SELECT * FROM weather where isFavorite= false LIMIT 1")
@@ -50,7 +50,7 @@ interface WeatherDao {
 
 }
 
-@Database(entities = arrayOf(WeatherResponse::class,WeatherInfo::class), version = 2)
+@Database(entities = [WeatherResponse::class], version = 3)
 @TypeConverters(Converters::class)
 abstract class WeatherDataBse : RoomDatabase() {
     abstract fun getWeatherDao(): WeatherDao

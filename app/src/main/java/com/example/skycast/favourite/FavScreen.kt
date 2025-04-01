@@ -58,7 +58,8 @@ import com.example.skycast.viewmodel.LocationViewModel
 
 
 @Composable
-fun FavWeatherScreen(weather :List<WeatherResponse>,  onNavigateToLocation: () -> Unit ) {
+fun FavWeatherScreen(weather :List<WeatherResponse>,  onNavigateToLocation: () -> Unit
+                     ,  onNavigateToHome: (WeatherResponse?) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -79,31 +80,29 @@ fun FavWeatherScreen(weather :List<WeatherResponse>,  onNavigateToLocation: () -
             }
         }
         Spacer(modifier = Modifier.height(20.dp))
-        WeatherList(weather)
-    }
-}
 
-@Composable
-fun WeatherList(weather :List<WeatherResponse>) {
-
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        items(weather) { item ->
-            WeatherCard(item)
+        LazyColumn( verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+            items(weather) { item ->
+                WeatherCard(item,{onNavigateToHome(item)})
+            }
         }
     }
 }
 @Composable
-fun WeatherCard(data: WeatherResponse) {
+fun WeatherCard(data: WeatherResponse
+                ,  onNavigateToHome: (WeatherResponse) -> Unit) {
     Card(
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .height(150.dp)
+            .height(180.dp)
             .padding(vertical = 6.dp, horizontal = 12.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(PrimaryColor.value).copy(alpha = 0.25f) // subtle background
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        onClick = {onNavigateToHome(data)}
     ) {
         Box(
             modifier = Modifier
@@ -111,12 +110,12 @@ fun WeatherCard(data: WeatherResponse) {
                 .background(
                     brush = Brush.linearGradient(
                         colors = listOf(
-                            Color(PrimaryColor.value),
-                            Color(TertiaryColor.value)
+                            Color(PrimaryColor.value).copy(alpha = 0.5f),
+                            Color(TertiaryColor.value).copy(alpha = 0.5f)
                         )
                     )
                 )
-                .padding(16.dp) // Padding inside the card, adjust as needed
+                .padding(16.dp)
         ) {
             Row(
                 modifier = Modifier
@@ -127,13 +126,12 @@ fun WeatherCard(data: WeatherResponse) {
             ) {
                 Column {
                     Text(
-                        "${data.current?.temp}°",
-                        fontSize = 32.sp,
+                        "${data.name}°",
+                        fontSize = 40.sp,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
-                    Text("H: 26°  L: 16°", fontSize = 14.sp, color = Color.White)
-                    Text(data.name?:"N/A", fontSize = 16.sp, color = Color.White)
+                    Text("${ data.current?.temp ?: 0.0 }", fontSize = 16.sp, color = Color.White)
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     WeatherIcon(data.current?.weather?.get(0)?.icon?:"")

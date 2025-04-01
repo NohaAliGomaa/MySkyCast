@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -18,12 +20,15 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.skycast.R
+import com.example.skycast.home.WeatherScreen
+import com.example.skycast.model.pojo.WeatherResponse
+import com.example.skycast.model.result.WeatherResult
 import com.example.skycast.ui.theme.PrimaryColor
 import com.example.skycast.ui.theme.TertiaryColor
 import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(onFinish: () -> Unit) {
+fun SplashScreen(onFinish: () -> Unit,/*weather :WeatherResult*/) {
     val composition = rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.splash_animation))
     val progress = animateLottieCompositionAsState(
         composition = composition.value,
@@ -37,6 +42,9 @@ fun SplashScreen(onFinish: () -> Unit) {
         delay(2500)
         onFinish()
     }
+
+
+
 
     Box(
         modifier = Modifier
@@ -58,3 +66,4 @@ fun SplashScreen(onFinish: () -> Unit) {
         )
     }
 }
+

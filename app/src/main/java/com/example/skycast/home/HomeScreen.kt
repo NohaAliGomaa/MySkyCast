@@ -208,7 +208,7 @@ fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo,isOnline : 
                     color = Color.White
                 )
                 LazyColumn(
-                    modifier = Modifier.height(300.dp)
+                    modifier = Modifier.height(350.dp)
                 ) {
                     items((weather.daily?.filterNotNull() ?: emptyList()).take(5)) { day ->
                         ForecastRow(day)
@@ -292,7 +292,7 @@ fun WeatherPreview() {
                 )
             )
         },
-        daily = List(4) {
+        daily = List(5) {
             DailyItem(
                 dt = 1618317040,
                 temp = Temp(day = 26.0, night = 18.0, max = 27.0, min = 16.0),
@@ -626,7 +626,7 @@ fun weatherProperities(pressure : Int, humidity : Int, clouds: Int){
         modifier = Modifier
             .padding(12.dp)
             .width(180.dp)
-            .height(150.dp),
+            .height(160.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White.copy(alpha = 0.05f) // subtle background

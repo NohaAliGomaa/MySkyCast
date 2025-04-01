@@ -5,12 +5,10 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "weather_info")
-@Keep
+
 data class WeatherInfo(
-    @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    @Embedded val sys: Sys? = null,
+   val sys: Sys? = null,
     val name: String? = null
 )
 

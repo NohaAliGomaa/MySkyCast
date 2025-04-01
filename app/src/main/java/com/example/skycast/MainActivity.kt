@@ -3,6 +3,8 @@ package com.example.skycast
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.net.Uri.encode
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -54,15 +56,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.Brush
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.toRoute
 import com.example.skycast.favourite.FavWeatherScreen
 import com.example.skycast.map.LocationScreen
 import com.example.skycast.model.local.LocalDataSource
+import com.example.skycast.model.pojo.WeatherResponse
 import com.example.skycast.model.result.LocalDataState
 import com.example.skycast.model.util.NetworkUtils
 import com.example.skycast.ui.theme.PrimaryColor
 import com.example.skycast.ui.theme.SecondaryColor
 import com.example.skycast.ui.theme.TertiaryColor
 import com.example.skycast.viewmodel.LocationFactory
+import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 
 
 class MainActivity : ComponentActivity() {
@@ -121,10 +127,13 @@ fun AppNavigation(
     }
     Scaffold(
         bottomBar = {
-            if (currentRoute in bottomBarRoutes) {
-                BottomNavigationBar( navController)
-            }
+            val currentBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = currentBackStackEntry?.destination?.route ?: ""
 
+            // Show Bottom Navigation Bar only for certain routes
+            if (currentRoute in bottomBarRoutes) {
+                BottomNavigationBar(navController)
+            }
         }
     )
     { innerPadding ->
@@ -135,15 +144,22 @@ fun AppNavigation(
                 .padding(innerPadding)
 
         ) {
-            composable(ScreenRout.SplashScreenRoute.route) {
+            composable(ScreenRout.SplashScreenRoute.route) {backStackEntry ->
+                val weatherObject = navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<WeatherResponse>("weatherData")
                 SplashScreen {
-                    navController.navigate(ScreenRout.HomeScreenRoute.route) {
+                    navController.navigate(ScreenRout.HomeScreenRoute(weatherObject?:WeatherResponse()).route) {
                         popUpTo(ScreenRout.SplashScreenRoute.route) { inclusive = true }
                     }
                 }
             }
 
-            composable(ScreenRout.HomeScreenRoute.route) {
+            composable("home_screen") {backStackEntry ->
+                val weatherObject = navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<WeatherResponse>("weatherData")
+
                 // Permission + GPS Handling
                 LaunchedEffect(locationState.isGpsEnabled) {
                     locationViewModel.checkGpsEnabled()
@@ -210,18 +226,27 @@ fun AppNavigation(
                 }
 
                 // Safe Weather Fetching
-                locationState.latitude?.let { lat ->
-                    locationState.longitude?.let { lon ->
-                        LaunchedEffect(lat, lon) {
-                            viewModel.getCurrentWeather(
-                                lat = lat,
-                                lon = lon,
-                                lang = "en",
-                                units = AppConstants.WEATHER_UNIT
-                            )
-                            viewModel.getWeatherInfo(lat = lat, lon = lon)
+                if(weatherObject == WeatherResponse() || weatherObject == null) {
+                    locationState.latitude?.let { lat ->
+                        locationState.longitude?.let { lon ->
+                            LaunchedEffect(lat, lon) {
+                                viewModel.getCurrentWeather(
+                                    lat = lat,
+                                    lon = lon,
+                                    lang = "en",
+                                    units = AppConstants.WEATHER_UNIT
+                                )
+                                viewModel.getWeatherInfo(lat = lat, lon = lon)
+                            }
                         }
                     }
+                }else{
+                    viewModel.getCurrentWeather(  lat = weatherObject.lat?:0.0,
+                        lon = weatherObject.lon?:0.0,
+                        lang = "en",
+                        units = AppConstants.WEATHER_UNIT)
+                    viewModel.getWeatherInfo( lat = weatherObject.lat?:0.0,
+                        lon = weatherObject.lon?:0.0)
                 }
 
                 // Weather Display Logic
@@ -231,7 +256,8 @@ fun AppNavigation(
                     }
 
                     is WeatherResult.Success -> {
-                        WeatherScreen(currentWeather.data,weatherInfo,isOnline)
+
+                        WeatherScreen(currentWeather.data, weatherInfo, isOnline)
                     }
 
                     is WeatherResult.Failure -> {
@@ -248,17 +274,28 @@ fun AppNavigation(
                 }
             }
 
-            composable("Fav_screen") {
+            composable(ScreenRout.FavScreenRoute.route) {backStackEntry ->
+
+                viewModel.getFavoriteWeathers()
                 when (val currentWeather = favWeather) {
                     is LocalDataState.Loading -> {
                         CircularProgressIndicator()
                     }
 
                     is LocalDataState.Success -> {
-                        FavWeatherScreen(currentWeather.data?: emptyList(),
-                            { navController.navigate("location") })
-                    }
+                        val favList = currentWeather.data ?: emptyList()
 
+                        FavWeatherScreen(
+                            favList,
+                             { navController.navigate("location") },
+                            { selectedWeather ->
+                                navController.currentBackStackEntry?.savedStateHandle?.set("weatherData", selectedWeather?:currentWeather.data)
+                                navController.navigate("home_screen")
+
+
+                            }
+                        )
+                    }
                     is LocalDataState.Fail-> {
                         Text(
                             text = "Weather Error: ${currentWeather.msg.message}",
@@ -268,7 +305,9 @@ fun AppNavigation(
                 }
             }
             composable("location") {
-                LocationScreen(locationViewModel)
+                LocationScreen(locationViewModel,
+                    viewModel
+                    ,{ navController.navigate("Fav_screen") })
             }
             composable("setting") {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
