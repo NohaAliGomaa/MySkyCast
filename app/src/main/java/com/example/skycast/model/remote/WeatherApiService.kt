@@ -13,7 +13,7 @@ interface WeatherApiService {
     suspend  fun getCurrentWeather(
         @Query("lat") lat: Double,
         @Query("lon") lon: Double,
-        @Query("units") units: String = "metric",
+        @Query("units") units: String ,
         @Query("lang") lang:String,
         @Query("appid") apiKey: String = AppConstants.WEATHER_API_KEY
     ): Response<WeatherResponse>
@@ -22,6 +22,8 @@ interface WeatherApiService {
     suspend fun getWeatherInfo(
         @Query("lat") lat: Double,
         @Query("lon") lon: Double,
+        @Query("units") units: String ,
+        @Query("lang") lang:String,
         @Query("appid") apiKey: String = AppConstants.WEATHER_API_KEY
     ): Response<WeatherInfo>
 

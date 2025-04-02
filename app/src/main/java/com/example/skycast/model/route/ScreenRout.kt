@@ -15,5 +15,7 @@ sealed class ScreenRout(val route: String) {
     @Serializable
     object FavScreenRoute : ScreenRout("Fav_screen")
     @Serializable
-    object LocationcreenRoute : ScreenRout("location")
+    object LocatioSncreenRoute : ScreenRout("location")
+    @Serializable
+    object SettingSncreenRoute : ScreenRout("setting")
 }

@@ -25,8 +25,9 @@ class RemoteDataSourceImpl :IRemoteDataSource {
             throw Exception("API error: ${response.code()} - ${response.message()}")
         }
     }
-    override fun getWeatherInfo(lat: Double, lon: Double): Flow<WeatherInfo> = flow {
-        val response = WeatherApi.getWeatherInfo(lat, lon)
+    override fun getWeatherInfo(lat: Double, lon: Double, lang:String,
+                                units: String): Flow<WeatherInfo> = flow {
+        val response = WeatherApi.getWeatherInfo(lat, lon,lang,units)
         Log.d("WeatherRemote", "Raw response: ${response.raw()}")
         Log.d("WeatherRemote", "Error body: ${response.errorBody()?.string()}")
 

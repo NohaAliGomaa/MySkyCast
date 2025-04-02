@@ -1,5 +1,6 @@
 package com.example.skycast.home
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
@@ -64,11 +65,30 @@ import androidx.compose.foundation.layout.*
 // Optional for text drawing
 import androidx.compose.ui.graphics.nativeCanvas
 import android.graphics.Typeface
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.LayoutDirection
+import com.example.skycast.model.pojo.Settings
 import com.example.skycast.model.pojo.Sys
 import com.example.skycast.model.pojo.WeatherInfo
+import com.example.skycast.model.sharedpreferences.SharedManager
+import com.example.skycast.model.util.AppConstants
+import com.example.skycast.model.util.Utils
+import com.example.skycast.model.util.Utils.WeatherIcon
+import com.example.skycast.model.util.Utils.degToCompassDirection
+import com.example.skycast.model.util.Utils.englishNumberToArabicNumber
+import com.example.skycast.model.util.Utils.formatDate
+import com.example.skycast.model.util.Utils.formatDateArabic
+import com.example.skycast.model.util.Utils.formatTime
+import com.example.skycast.model.util.Utils.formatTimeArabic
+import com.example.skycast.model.util.Utils.getAddressArabic
+import com.example.skycast.model.util.Utils.getAddressEnglish
+import com.example.skycast.model.util.Utils.unixToHour
 import com.example.skycast.ui.theme.PrimaryColor
 import com.example.skycast.ui.theme.TertiaryColor
 import com.example.skycast.viewmodel.WeatherViewModel
@@ -78,10 +98,21 @@ import java.util.TimeZone
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo,isOnline : Boolean) {
+
     val currentWeather = weather.current
     val dailyWeather = weather.daily
     val scrollState = rememberScrollState()
-
+    val setting = SharedManager.getSettings()?:Settings(AppConstants.LANG_EN,
+        false,AppConstants.WEATHER_UNIT)
+    val weatherUnit = when (setting.unit) {
+        AppConstants.UNITS_CELSIUS -> if (setting.lang == AppConstants.LANG_AR) "°م" else "°C"
+        AppConstants.UNITS_FAHRENHEIT -> if (setting.lang == AppConstants.LANG_AR) "°ف" else "°F"
+        else -> if (setting.lang == AppConstants.LANG_AR) "°ك" else "°K"
+    }
+    val context = LocalContext.current
+    Utils.setAppLocale(setting.lang,context)
+    val layoutDirection = if (setting.lang == "ar") LayoutDirection.Rtl else LayoutDirection.Ltr
+    CompositionLocalProvider(LocalLayoutDirection provides layoutDirection){
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -102,12 +133,12 @@ fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo,isOnline : 
                 ),
             contentAlignment = Alignment.Center
         ) {
-//            Image(
-//                painter = painterResource(id = R.drawable.weather_bg),
-//                contentDescription = null,
-//                modifier = Modifier.fillMaxSize(),
-//                contentScale = ContentScale.Crop
-//            )
+            Image(
+                painter = painterResource(id = R.drawable.weather_bg),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
 
             Image(
                 painter = painterResource(id = R.drawable.ic_house),
@@ -115,145 +146,145 @@ fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo,isOnline : 
                 modifier = Modifier
                     .size(400.dp)
                     .offset(y = 10.dp)
-
             )
         }
-
-        // Scrollable Content
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .fillMaxHeight()
-        ) {
-            Spacer(modifier = Modifier.height(60.dp))
-
-            // Location and Temperature
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
-                    .verticalScroll(scrollState)
-            ) {
-                if(isOnline){
-                    Text(
-                        "${weatherInfo.name}",
-                        color = Color.White,
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }else{
-                    Text(
-                        "${weather.name}",
-                        color = Color.White,
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-
-                Text(
-                    "${currentWeather?.temp}°C",
-                    color = Color.White,
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Medium
-                )
-
-                Text(
-                    currentWeather?.weather?.firstOrNull()?.description ?: "N/A",
-                    color = Color.LightGray
-                )
-
-                Row(modifier = Modifier.padding(8.dp)) {
-                    Text("H°: ${dailyWeather?.get(0)?.temp?.max}°  ", color = Color.White)
-                    Text("L°: ${dailyWeather?.get(0)?.temp?.min}°", color = Color.White)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(150.dp)) // Space for house background
-
-            // Scrollable Weather Details
+            // Scrollable Content
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(
-                                Color(TertiaryColor.value),
-                                Color(PrimaryColor.value)
-
-                            )
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    .padding(16.dp)
-                    .verticalScroll(scrollState)
+                    .fillMaxSize()
+                    .fillMaxHeight()
             ) {
-                // Hourly Forecast
-                Text(
-                    "Hourly Forecast",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White
-                )
-                LazyRow {
-                    items(weather.hourly?.filterNotNull() ?: emptyList()) { hour ->
-                        HourlyWeatherCard(hour)
+                Spacer(modifier = Modifier.height(60.dp))
+                // Location and Temperature
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(scrollState)
+                ) {
+                    if(setting.lang  == AppConstants.LANG_EN){
+                        Text(
+                            "${getAddressEnglish(context,weather.lat,weather.lon)}",
+                            color = Color.White,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            "${currentWeather?.temp}${weatherUnit}",
+                            color = Color.White,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }else{
+                        Text(
+                            "${getAddressArabic(context,weather.lat?:0.0,weather.lon?:0.0)}",
+                            color = Color.White,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            "${englishNumberToArabicNumber(currentWeather?.temp.toString())}${weatherUnit}",
+                            color = Color.White,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                    Text(
+                        currentWeather?.weather?.firstOrNull()?.description ?: "N/A",
+                        color = Color.LightGray
+                    )
+
+                    Row(modifier = Modifier.padding(8.dp)) {
+                        Text("H°: ${dailyWeather?.get(0)?.temp?.max}°", color = Color.White)
+                        Text("L°: ${dailyWeather?.get(0)?.temp?.min}°", color = Color.White)
                     }
                 }
+                Spacer(modifier = Modifier.height(150.dp))
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    Color(TertiaryColor.value),
+                                    Color(PrimaryColor.value)
 
-                // 5-day Forecast
-                Text(
-                    "5-day forecast",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White
-                )
-                LazyColumn(
-                    modifier = Modifier.height(350.dp)
+                                )
+                            ),
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                        .padding(16.dp)
+                        .verticalScroll(scrollState)
                 ) {
-                    items((weather.daily?.filterNotNull() ?: emptyList()).take(5)) { day ->
-                        ForecastRow(day)
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Wind Speed Card
-                val windDeg = weather.current?.windDeg ?: 0
-                val windSpeed = (weather.current?.windSpeed as? Double ?: 0.0) * 3.6
-                val windGust = (weather.current?.windGust as? Double)?.times(3.6)
-                WindSpeedCard(
-                    windSpeed = windSpeed,
-                    windDeg = windDeg,
-                    windGust = windGust
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Sunrise, Sunset, and Weather Properties
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column {
-                        uvandRealFeel(weather.current?.feelsLike?:0.0)
-                        if (isOnline) {
-                            sunriseAndSet(
-                                weatherInfo.sys?.sunrise ?: 0,
-                                weatherInfo.sys?.sunset ?: 0
-                            )
-                        }else{
-                            sunriseAndSet(
-                                weather.sunriseInfo ?: 0,
-                                weather.sunsetInfo ?: 0
-                            )
+                    // Hourly Forecast
+                    Text(
+                        text = stringResource(id = R.string.hourly_forecast),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White
+                    )
+                    LazyRow {
+                        items(weather.hourly?.filterNotNull() ?: emptyList()) { hour ->
+                            HourlyWeatherCard(hour)
                         }
                     }
 
-                    weatherProperities(
-                        weather.current?.pressure ?: 0,
-                        weather.current?.humidity ?: 0,
-                        weather.current?.clouds ?: 0
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // 5-day Forecast
+                    Text(
+                        text = stringResource(id = R.string.five_day_forecast),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White
                     )
+                    LazyColumn(
+                        modifier = Modifier.height(350.dp)
+                    ) {
+                        items((weather.daily?.filterNotNull() ?: emptyList()).take(5)) { day ->
+                            ForecastRow(day)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Wind Speed Card
+                    val windDeg = weather.current?.windDeg ?: 0
+                    val windSpeed = (weather.current?.windSpeed as? Double ?: 0.0) * 3.6
+                    val windGust = (weather.current?.windGust as? Double)?.times(3.6)
+                    WindSpeedCard(
+                        windSpeed = windSpeed,
+                        windDeg = windDeg,
+                        windGust = windGust
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Sunrise, Sunset, and Weather Properties
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            uvandRealFeel(weather.current?.feelsLike?:0.0)
+                            if (isOnline) {
+                                sunriseAndSet(
+                                    weatherInfo.sys?.sunrise ?: 0,
+                                    weatherInfo.sys?.sunset ?: 0
+                                )
+                            }else{
+                                sunriseAndSet(
+                                    weather.sunriseInfo ?: 0,
+                                    weather.sunsetInfo ?: 0
+                                )
+                            }
+                        }
+                        weatherProperities(
+                            weather.current?.pressure ?: 0,
+                            weather.current?.humidity ?: 0,
+                            weather.current?.clouds ?: 0
+                        )
+                    }
                 }
             }
         }
@@ -314,6 +345,7 @@ fun WeatherPreview() {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HourlyWeatherCard(hour: HourlyItem) {
+
     Card(
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
@@ -331,28 +363,69 @@ fun HourlyWeatherCard(hour: HourlyItem) {
                 .padding(horizontal = 4.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = formatTime(hour.dt), // Format like "01:00", "Now"
-                 fontSize = 12.sp,
-                 color = Color.White
-            )
+            if(SharedManager.getSettings()?.lang == AppConstants.LANG_AR) {
+                    Text(
+                        text = formatTimeArabic(hour.dt),
+                        fontSize = 12.sp,
+                        color = Color.White
+                    )
 
-            Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
-            WeatherIcon(iconCode = hour.weather?.firstOrNull()?.icon ?: "01d", size = 24.dp)
+                    WeatherIcon(iconCode = hour.weather?.firstOrNull()?.icon ?: "01d", size = 24.dp)
 
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "${hour.temp}°",
-                style = MaterialTheme.typography.bodyMedium
-                , color = Color.White
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "${hour.windSpeed}km/h", // Add wind speed in your model
-                style = MaterialTheme.typography.labelSmall
-                , color = Color.White
-            )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "${englishNumberToArabicNumber(hour.temp.toString())}°",
+                        style = MaterialTheme.typography.bodyMedium
+                        , color = Color.White
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    if(SharedManager.getSettings()?.lang == "en"){
+                        Text(
+                            text = "${englishNumberToArabicNumber(hour.windSpeed.toString())}${AppConstants.WINDSPEED}", // Add wind speed in your model
+                            style = MaterialTheme.typography.labelSmall
+                            , color = Color.White
+                        )
+                    }else{
+                        Text(
+                            text = "${englishNumberToArabicNumber(hour.windSpeed.toString())}${AppConstants.WINDSPEEDARABIC}", // Add wind speed in your model
+                            style = MaterialTheme.typography.labelSmall
+                            , color = Color.White
+                        )
+                    }
+            }else{
+                Text(
+                    text = formatTime(hour.dt),
+                    fontSize = 12.sp,
+                    color = Color.White
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                WeatherIcon(iconCode = hour.weather?.firstOrNull()?.icon ?: "01d", size = 24.dp)
+
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "${hour.temp}°",
+                    style = MaterialTheme.typography.bodyMedium
+                    , color = Color.White
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                if(SharedManager.getSettings()?.lang == "en"){
+                    Text(
+                        text = "${hour.windSpeed}${AppConstants.WINDSPEED}", // Add wind speed in your model
+                        style = MaterialTheme.typography.labelSmall
+                        , color = Color.White
+                    )
+                }else{
+                    Text(
+                        text = "${hour.windSpeed}${AppConstants.WINDSPEEDARABIC}", // Add wind speed in your model
+                        style = MaterialTheme.typography.labelSmall
+                        , color = Color.White
+                    )
+                }
+            }
         }
     }
 }
@@ -384,11 +457,19 @@ fun ForecastRow(day: DailyItem) {
                 Spacer(Modifier.width(8.dp))
 
                 Column {
-                    Text(
-                        text = formatDate(day.dt),
-                        style = MaterialTheme.typography.bodyMedium
-                        , color = Color.White
-                    )
+                    if(SharedManager.getSettings()?.lang == AppConstants.LANG_AR){
+                        Text(
+                            text = formatDateArabic(day.dt),
+                            style = MaterialTheme.typography.bodyMedium
+                            , color = Color.White
+                        )
+                    }else{
+                        Text(
+                            text = formatDate(day.dt),
+                            style = MaterialTheme.typography.bodyMedium
+                            , color = Color.White
+                        )
+                    }
                     Text(
                         text = day.weather?.firstOrNull()?.main ?: "Clear",
                         style = MaterialTheme.typography.bodySmall
@@ -396,45 +477,22 @@ fun ForecastRow(day: DailyItem) {
                     )
                 }
             }
-
-            Text(
-                text = "${day.temp?.day}° / ${day.temp?.night}°",
-                style = MaterialTheme.typography.bodyMedium
-                , color = Color.White
-            )
+            if(SharedManager.getSettings()?.lang == AppConstants.LANG_AR) {
+                Text(
+                    text = "${englishNumberToArabicNumber( day.temp?.day.toString())}" +
+                            "° / ${englishNumberToArabicNumber( day.temp?.night.toString())}°",
+                    style = MaterialTheme.typography.bodyMedium, color = Color.White
+                )
+            }else{
+                Text(
+                    text = "${day.temp?.day}° / ${day.temp?.night}°",
+                    style = MaterialTheme.typography.bodyMedium, color = Color.White
+                )
+            }
         }
     }
 }
-
-
-@RequiresApi(Build.VERSION_CODES.O)
-fun formatTime(timestamp: Int?): String {
-    return timestamp?.let {
-        val time = Date(it * 1000L)
-        SimpleDateFormat("h:mm a", Locale.getDefault()).format(time)
-    } ?: ""
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-fun formatDate(timestamp: Int?): String {
-    return timestamp?.let {
-        val date = Date(it * 1000L)
-        SimpleDateFormat("EEEE, MMM d", Locale.getDefault()).format(date)
-    } ?: ""
-}
-
-@OptIn(ExperimentalGlideComposeApi::class)
-@Composable
-fun WeatherIcon(iconCode: String, size: Dp = 24.dp) {
-    val iconUrl = "https://openweathermap.org/img/wn/${iconCode}@4x.png"
-
-    GlideImage(
-        model = iconUrl,
-        contentDescription = "Weather Icon",
-        modifier = Modifier.size(size),
-        contentScale = ContentScale.Fit
-    )
-}
+@SuppressLint("DefaultLocale")
 @Composable
 fun WindSpeedCard(windSpeed: Double, windDeg: Int, windGust: Double?) {
     val directionLabel = degToCompassDirection(windDeg)
@@ -463,22 +521,46 @@ fun WindSpeedCard(windSpeed: Double, windDeg: Int, windGust: Double?) {
                     style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "${String.format("%.1f", windSpeed)} km/h",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                )
-                windGust?.let {
-                    Spacer(modifier = Modifier.height(4.dp))
+                if(SharedManager.getSettings()?.lang == "en"){
                     Text(
-                        text = "Gusts up to ${String.format("%.1f", it)} km/h",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White)
+                        text = "${String.format("%.1f", windSpeed)} ${AppConstants.WINDSPEED}",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    )
+                }else{
+                    Text(
+                        text = "${String.format("%.1f", windSpeed)} ${AppConstants.WINDSPEEDARABIC}",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
                     )
                 }
+                windGust?.let {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    if(SharedManager.getSettings()?.lang == "en") {
+                        Text(
+                            text = stringResource(
+                                id = R.string.gusts_up_to,
+                                String.format("%.1f", it),
+                                AppConstants.WINDSPEED
+                            ),
+                            style = MaterialTheme.typography.bodySmall.copy(color = Color.White)
+                        )
+                    }else{
+                        Text(
+                            text = stringResource(
+                                id = R.string.gusts_up_to,
+                                String.format("%.1f", it),
+                                AppConstants.WINDSPEEDARABIC
+                            ),
+                            style = MaterialTheme.typography.bodySmall.copy(color = Color.White)
+                        )
+                    }
+                }
             }
-
             // Compass
             Box(
                 modifier = Modifier
@@ -499,7 +581,11 @@ fun WindSpeedCard(windSpeed: Double, windDeg: Int, windGust: Double?) {
 
                     // Draw cardinal direction labels
                     val labelOffset = radius - 10.dp.toPx()
-                    val directions = listOf("N" to 270f, "E" to 0f, "S" to 90f, "W" to 180f)
+                    val directions: List<Pair<String, Float>> = if (SharedManager.getSettings()?.lang == "ar") {
+                        listOf("شمال" to 270f, "شرق" to 0f, "جنوب" to 90f, "غرب" to 180f)
+                    } else {
+                        listOf("N" to 270f, "E" to 0f, "S" to 90f, "W" to 180f)
+                    }
                     val textPaint = Paint().asFrameworkPaint().apply {
                         isAntiAlias = true
                         color = android.graphics.Color.WHITE
@@ -560,23 +646,7 @@ fun WindSpeedCard(windSpeed: Double, windDeg: Int, windGust: Double?) {
         }
     }
 }
-
 private fun Float.toRadians(): Float = (this * PI / 180f).toFloat()
-
-private fun degToCompassDirection(deg: Int): String {
-    return when ((deg % 360 + 22) / 45) {
-        0 -> "North"
-        1 -> "North-East"
-        2 -> "East"
-        3 -> "South-East"
-        4 -> "South"
-        5 -> "South-West"
-        6 -> "West"
-        7 -> "North-West"
-        else -> "North"
-    }
-}
-
 @Composable
 fun sunriseAndSet(rise : Int, set : Int){
     Card(
@@ -600,13 +670,13 @@ fun sunriseAndSet(rise : Int, set : Int){
             // Text Info
             Column {
                 Text(
-                    text = "${unixToHour(rise.toLong())}  Sunrise",
+                    text = "${unixToHour(set.toLong())}  " + stringResource(id = R.string.sunrise),
                     style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
                     , fontSize = 16.sp
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "${unixToHour(set.toLong())}  Sunset",
+                    text = "${unixToHour(set.toLong())}  " + stringResource(id = R.string.sunset),
                     style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
                     , fontSize = 16.sp
                 )
@@ -614,12 +684,7 @@ fun sunriseAndSet(rise : Int, set : Int){
         }
     }
 }
-fun unixToHour(unixTime: Long): String {
-    val date = Date(unixTime * 1000)
-    val sdf = SimpleDateFormat("h:mm a", Locale.getDefault())
-    sdf.timeZone = TimeZone.getDefault()
-    return sdf.format(date)
-}
+
 @Composable
 fun weatherProperities(pressure : Int, humidity : Int, clouds: Int){
     Card(
@@ -642,8 +707,28 @@ fun weatherProperities(pressure : Int, humidity : Int, clouds: Int){
         ) {
             // Text Info
             Column {
+                if(SharedManager.getSettings()?.lang == "ar"){
+                    Text(
+                        text = stringResource(id = R.string.pressure) + " ${pressure}${AppConstants.MBARARABIC}",
+                        style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
+                        , fontSize = 16.sp
+                    )
+                }else {
+                    Text(
+                        text = stringResource(id = R.string.pressure) + " ${pressure}${AppConstants.MBAR}",
+                        style = MaterialTheme.typography.titleMedium.copy(color = Color.White),
+                        fontSize = 16.sp
+                    )
+                }
+                Divider(
+                    color = Color.White.copy(alpha = 0.5f),
+                    thickness = 1.dp,
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .fillMaxWidth(0.8f)
+                )
                 Text(
-                    text = "Pressure   ${pressure}mbar",
+                    text = stringResource(id = R.string.humidity, humidity),
                     style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
                     , fontSize = 16.sp
                 )
@@ -655,19 +740,7 @@ fun weatherProperities(pressure : Int, humidity : Int, clouds: Int){
                         .fillMaxWidth(0.8f)
                 )
                 Text(
-                    text = "Humidity  ${humidity}%",
-                    style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
-                    , fontSize = 16.sp
-                )
-                Divider(
-                    color = Color.White.copy(alpha = 0.5f),
-                    thickness = 1.dp,
-                    modifier = Modifier
-                        .padding(vertical = 8.dp)
-                        .fillMaxWidth(0.8f)
-                )
-                Text(
-                    text = "Clouds   ${clouds}",
+                    text = stringResource(id = R.string.cloudiness,clouds),
                     style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
                     , fontSize = 16.sp
                 )
@@ -699,7 +772,7 @@ fun uvandRealFeel(real : Double){
             // Text Info
             Column {
                 Text(
-                    text = "Real feel ${real}°",
+                    text = stringResource(id = R.string.real_feel, real),
                     style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
                     , fontSize = 16.sp
                 )

@@ -52,7 +52,7 @@ class WeatherViewModel(
                     .collect { currentWeather ->
                         Log.i("TAG", "CurrentWeathers loaded: ${currentWeather.current}")
                         _currentWeather.value = WeatherResult.Success(currentWeather)
-                        val info = repo.getWeatherInfo(lat, lon).collect { weatherIF ->
+                        val info = repo.getWeatherInfo(lat, lon,lang,units).collect { weatherIF ->
                             currentWeather.name = weatherIF.name
                             currentWeather.sunsetInfo = weatherIF.sys?.sunset
                             currentWeather.sunriseInfo = weatherIF.sys?.sunrise
@@ -72,9 +72,10 @@ class WeatherViewModel(
         }
     }
 
-    fun getWeatherInfo(lat: Double, lon: Double) {
+    fun getWeatherInfo(lat: Double, lon: Double  ,lang: String,
+                       units: String) {
         viewModelScope.launch {
-            repo.getWeatherInfo(lat, lon)
+            repo.getWeatherInfo(lat, lon,lang,units)
                 .catch { e -> Log.i("TAG", "CurrentWeathers faild: ${e}") }
                 .collect { currentWeather ->
                     Log.i("TAG", "CurrentWeathers loaded: ${currentWeather.name}")
@@ -112,16 +113,17 @@ class WeatherViewModel(
         }
     }
 
-    fun insertFavorite(lat: Double, lon: Double) {
+    fun insertFavorite(lat: Double, lon: Double,lang: String,
+                       units: String) {
         val isOnline = NetworkUtils.isInternetAvailable(context)
         viewModelScope.launch {
             if (isOnline) {
-                repo.getCurrentWeather(lat, lon, "en", AppConstants.WEATHER_UNIT, isOnline)
+                repo.getCurrentWeather(lat, lon, lang, units, isOnline)
                     .catch { e -> _favWeather.value = LocalDataState.Fail(e) }
                     .collect { currentWeather ->
                         Log.i("TAG", "CurrentWeathers loaded: ${currentWeather.current}")
                         _favWeather.value = LocalDataState.Success(listOf(currentWeather))
-                        val info = repo.getWeatherInfo(lat, lon).collect { weatherIF ->
+                        val info = repo.getWeatherInfo(lat, lon, lang , units ).collect { weatherIF ->
                             currentWeather.name = weatherIF.name
                             currentWeather.sunsetInfo = weatherIF.sys?.sunset
                             currentWeather.sunriseInfo = weatherIF.sys?.sunrise

@@ -33,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.skycast.model.sharedpreferences.SharedManager
 import com.example.skycast.model.util.AppConstants
 import com.example.skycast.ui.theme.TertiaryColor
 import com.example.skycast.viewmodel.LocationViewModel
@@ -115,7 +116,9 @@ fun LocationPickerMap(
             onClick = {
                 viewModel.insertFavorite(
                     selectedLatLng?.latitude ?: defaultLocation.latitude,
-                    selectedLatLng?.longitude ?: defaultLocation.longitude
+                    selectedLatLng?.longitude ?: defaultLocation.longitude,
+                    SharedManager.getSettings()?.lang?:AppConstants.LANG_EN,
+                    SharedManager.getSettings()?.unit?:AppConstants.WEATHER_UNIT
                 )
                 onNavigateToFav() },
             modifier = Modifier

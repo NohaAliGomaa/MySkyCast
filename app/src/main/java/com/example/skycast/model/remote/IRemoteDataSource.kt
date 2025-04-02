@@ -10,5 +10,7 @@ interface IRemoteDataSource {
                          lang:String,
                          units: String = "metric") : Flow<WeatherResponse>
     fun getWeatherInfo(lat: Double,
-                       lon: Double): Flow<WeatherInfo>
+                       lon: Double,
+                       lang: String,
+                       units: String): Flow<WeatherInfo>
 }

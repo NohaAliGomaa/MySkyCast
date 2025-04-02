@@ -50,6 +50,7 @@ import com.example.skycast.R
 import com.example.skycast.map.LocationScreen
 import com.example.skycast.map.SearchBar
 import com.example.skycast.model.pojo.WeatherResponse
+import com.example.skycast.model.util.Utils.WeatherIcon
 import com.example.skycast.ui.theme.PrimaryColor
 import com.example.skycast.ui.theme.PurpleGrey40
 import com.example.skycast.ui.theme.SecondaryColor
@@ -140,17 +141,5 @@ fun WeatherCard(data: WeatherResponse
             }
         }
     }
-}
-@OptIn(ExperimentalGlideComposeApi::class)
-@Composable
-fun WeatherIcon(iconCode: String, size: Dp = 48.dp) {
-    val iconUrl = "https://openweathermap.org/img/wn/${iconCode}@4x.png"
-
-    GlideImage(
-        model = iconUrl,
-        contentDescription = "Weather Icon",
-        modifier = Modifier.size(size),
-        contentScale = ContentScale.Fit
-    )
 }
 

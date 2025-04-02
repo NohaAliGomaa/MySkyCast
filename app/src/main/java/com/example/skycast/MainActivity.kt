@@ -1,6 +1,7 @@
 package com.example.skycast
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -62,13 +63,19 @@ import com.example.skycast.map.LocationScreen
 import com.example.skycast.model.local.LocalDataSource
 import com.example.skycast.model.pojo.WeatherResponse
 import com.example.skycast.model.result.LocalDataState
+import com.example.skycast.model.sharedpreferences.SharedManager
 import com.example.skycast.model.util.NetworkUtils
+import com.example.skycast.model.util.Utils
+import com.example.skycast.setting.SettingsScreen
 import com.example.skycast.ui.theme.PrimaryColor
 import com.example.skycast.ui.theme.SecondaryColor
 import com.example.skycast.ui.theme.TertiaryColor
 import com.example.skycast.viewmodel.LocationFactory
+import com.example.skycast.viewmodel.SettingsViewModel
+import com.example.skycast.viewmodel.SettingsViewModelFactory
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
+import java.util.Locale
 
 
 class MainActivity : ComponentActivity() {
@@ -83,21 +90,24 @@ class MainActivity : ComponentActivity() {
         val app = application as MyApp
         val locationFactory = LocationFactory(app)
         val locationViewModel = ViewModelProvider(this, locationFactory).get(LocationViewModel::class.java)
-
+        val settingFactory = SettingsViewModelFactory(WeatherRepositry(RemoteDataSourceImpl(),LocalDataSource(this)))
+        val settingViewModel = ViewModelProvider(this, settingFactory).get(SettingsViewModel::class.java)
         setContent {
             SkyCastTheme {
-                AppNavigation(viewModel,isOnline,locationViewModel)
+                AppNavigation(viewModel,isOnline,locationViewModel,settingViewModel)
             }
         }
     }
 }
+@SuppressLint("RememberReturnType")
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation(
     viewModel: WeatherViewModel,
     isOnline : Boolean,
-    locationViewModel: LocationViewModel
+    locationViewModel: LocationViewModel,
+    settingViewModel: SettingsViewModel
 
 ) {
 
@@ -224,29 +234,82 @@ fun AppNavigation(
                         )
                     }
                 }
-
-                // Safe Weather Fetching
-                if(weatherObject == WeatherResponse() || weatherObject == null) {
-                    locationState.latitude?.let { lat ->
-                        locationState.longitude?.let { lon ->
-                            LaunchedEffect(lat, lon) {
-                                viewModel.getCurrentWeather(
-                                    lat = lat,
-                                    lon = lon,
-                                    lang = "en",
-                                    units = AppConstants.WEATHER_UNIT
-                                )
-                                viewModel.getWeatherInfo(lat = lat, lon = lon)
+                if(SharedManager.getSettings() == null) {
+                    // Safe Weather Fetching
+                    if (weatherObject == WeatherResponse() || weatherObject == null) {
+                        locationState.latitude?.let { lat ->
+                            locationState.longitude?.let { lon ->
+                                LaunchedEffect(lat, lon) {
+                                    viewModel.getCurrentWeather(
+                                        lat = lat,
+                                        lon = lon,
+                                        lang = "en",
+                                        units = AppConstants.WEATHER_UNIT
+                                    )
+                                    viewModel.getWeatherInfo(lat = lat, lon = lon,    lang = "en",
+                                        units = AppConstants.WEATHER_UNIT)
+                                }
                             }
                         }
+                    } else {
+                        viewModel.getCurrentWeather(
+                            lat = weatherObject.lat ?: 0.0,
+                            lon = weatherObject.lon ?: 0.0,
+                            lang = "en",
+                            units = AppConstants.WEATHER_UNIT
+                        )
+                        viewModel.getWeatherInfo(
+                            lat = weatherObject.lat ?: 0.0,
+                            lon = weatherObject.lon ?: 0.0,
+                            lang = "en",
+                            units = AppConstants.WEATHER_UNIT
+                        )
                     }
                 }else{
-                    viewModel.getCurrentWeather(  lat = weatherObject.lat?:0.0,
-                        lon = weatherObject.lon?:0.0,
-                        lang = "en",
-                        units = AppConstants.WEATHER_UNIT)
-                    viewModel.getWeatherInfo( lat = weatherObject.lat?:0.0,
-                        lon = weatherObject.lon?:0.0)
+                    val lang = SharedManager.getSettings()?.lang?:AppConstants.LANG_EN
+                    val unit = SharedManager.getSettings()?.unit?:AppConstants.WEATHER_UNIT
+                    if(SharedManager.getSettings()?.isMap == false){
+                        if (weatherObject == WeatherResponse() || weatherObject == null) {
+                            locationState.latitude?.let { lat ->
+                                locationState.longitude?.let { lon ->
+                                    LaunchedEffect(lat, lon) {
+                                        viewModel.getCurrentWeather(
+                                            lat = lat,
+                                            lon = lon,
+                                            lang = lang,
+                                            units = unit
+                                        )
+                                        viewModel.getWeatherInfo(lat = lat, lon = lon,  lang = lang,
+                                            units = unit)
+                                    }
+                                }
+                            }
+                        } else {
+                            viewModel.getCurrentWeather(
+                                lat = weatherObject.lat ?: 0.0,
+                                lon = weatherObject.lon ?: 0.0,
+                                lang = lang,
+                                units = unit
+                            )
+                            viewModel.getWeatherInfo(
+                                lat = weatherObject.lat ?: 0.0,
+                                lon = weatherObject.lon ?: 0.0,
+                                lang = lang,
+                                units = unit
+                            )
+                        }
+                    }else{
+                        viewModel.getCurrentWeather(
+                            lat = SharedManager.getSettings()?.lat?:0.0,
+                            lon = SharedManager.getSettings()?.lon?:0.0,
+                            lang = lang,
+                            units = unit
+                        )
+                        viewModel.getWeatherInfo(lat = SharedManager.getSettings()?.lat?:0.0,
+                            lon = SharedManager.getSettings()?.lon?:0.0,lang = lang,
+                            units = unit)
+                    }
+
                 }
 
                 // Weather Display Logic
@@ -310,9 +373,14 @@ fun AppNavigation(
                     ,{ navController.navigate("Fav_screen") })
             }
             composable("setting") {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Settings Screen")
-                }
+//                val context = LocalContext.current
+//                SharedManager.init(context)
+//                val currentLang = SharedManager.getSettings()?.lang ?: AppConstants.LANG_EN
+//                Utils.changeLang(context,currentLang)
+                SettingsScreen(
+                    { navController.navigate("home_screen") },
+                    settingViewModel
+                )
             }
 
         }
