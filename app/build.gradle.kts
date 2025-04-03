@@ -136,9 +136,10 @@ dependencies {
 // Places SDK
     implementation("com.google.android.libraries.places:places:3.3.0")
 
-//    implementation(" com.google.android.gms:play-services-base:18.2.0")
 
-
+    implementation("androidx.compose.material:material:1.5.4") // Required for SwipeToDismiss
+    implementation("androidx.compose.material3:material3:1.2.0") // For Material 3 UI
+    implementation("androidx.compose.material:material:1.6.0")
 
 
     //Room

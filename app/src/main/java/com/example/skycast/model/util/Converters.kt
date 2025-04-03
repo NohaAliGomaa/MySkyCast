@@ -4,6 +4,7 @@ import androidx.room.TypeConverter
 import com.example.skycast.model.pojo.DailyItem
 import com.example.skycast.model.pojo.HourlyItem
 import com.example.skycast.model.pojo.MinutelyItem
+import com.example.skycast.model.pojo.WeatherAlert
 import com.example.skycast.model.pojo.WeatherItem
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -55,5 +56,17 @@ class Converters {
     fun toWeatherItemList(value: String?): List<WeatherItem?>? {
         val listType = object : TypeToken<List<WeatherItem?>>() {}.type
         return gson.fromJson(value, listType)
+    }
+    @TypeConverter
+    fun fromWeatherAlertList(alerts: List<WeatherAlert>?): String? {
+        return gson.toJson(alerts)
+    }
+
+    @TypeConverter
+    fun toWeatherAlertList(alertsJson: String?): List<WeatherAlert>? {
+        return alertsJson?.let {
+            val type = object : TypeToken<List<WeatherAlert>>() {}.type
+            gson.fromJson(it, type)
+        }
     }
 }

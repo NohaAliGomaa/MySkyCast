@@ -13,9 +13,11 @@ interface IRepositry {
     suspend fun getWeatherInfo(lat: Double, lon: Double, lang:String,
                                units: String): Flow<WeatherInfo>
     suspend  fun getFavoriteWeathers(): Flow<List<WeatherResponse>?>
-    suspend fun getCurrentWeathers(): Flow<WeatherResponse>?
+    fun getCurrentWeathers():Flow<List<WeatherResponse>?>
     suspend fun insertWeather(weather: WeatherResponse): Long
     suspend fun insertCurrentWeather(weather: WeatherResponse): Long
+    suspend fun insertOrUpdateCurrentWeather(weather: WeatherResponse)
+     suspend fun deleteFavorite(weather: WeatherResponse): Int
     fun saveSettings(settings: Settings)
     fun getSettings():Settings?
 //    fun saveAlertSettings(alertSettings: AlertSettings)

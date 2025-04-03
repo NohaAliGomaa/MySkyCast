@@ -11,7 +11,8 @@ interface ILocalDataSource {
     suspend fun deleteCurrent(): Int
     suspend fun insertCurrentWeather(weather: WeatherResponse): Long
 
-    fun getCurrentWeathers(): Flow<WeatherResponse>?
+    fun getCurrentWeathers():Flow<List<WeatherResponse>?>
     suspend fun insertOrUpdateCurrentWeather(weather: WeatherResponse)
     suspend fun updateFavWeather(weather: WeatherResponse)
+
 }

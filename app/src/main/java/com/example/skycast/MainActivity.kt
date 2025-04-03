@@ -2,6 +2,7 @@ package com.example.skycast
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -64,7 +65,9 @@ import com.example.skycast.model.local.LocalDataSource
 import com.example.skycast.model.pojo.WeatherResponse
 import com.example.skycast.model.result.LocalDataState
 import com.example.skycast.model.sharedpreferences.SharedManager
+import com.example.skycast.model.util.BottomNavItem
 import com.example.skycast.model.util.NetworkUtils
+import com.example.skycast.model.util.PreviewCustomProgressIndicator
 import com.example.skycast.model.util.Utils
 import com.example.skycast.setting.SettingsScreen
 import com.example.skycast.ui.theme.PrimaryColor
@@ -90,7 +93,8 @@ class MainActivity : ComponentActivity() {
         val app = application as MyApp
         val locationFactory = LocationFactory(app)
         val locationViewModel = ViewModelProvider(this, locationFactory).get(LocationViewModel::class.java)
-        val settingFactory = SettingsViewModelFactory(WeatherRepositry(RemoteDataSourceImpl(),LocalDataSource(this)))
+     val settingFactory = SettingsViewModelFactory(WeatherRepositry(RemoteDataSourceImpl(),LocalDataSource(this)))
+       // val settingFactory = SettingsViewModelFactory(SharedManager(this))
         val settingViewModel = ViewModelProvider(this, settingFactory).get(SettingsViewModel::class.java)
         setContent {
             SkyCastTheme {
@@ -122,6 +126,7 @@ fun AppNavigation(
     // Check current route
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
+    val settings  by settingViewModel.settings.collectAsState()
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -159,7 +164,7 @@ fun AppNavigation(
                     ?.savedStateHandle
                     ?.get<WeatherResponse>("weatherData")
                 SplashScreen {
-                    navController.navigate(ScreenRout.HomeScreenRoute(weatherObject?:WeatherResponse()).route) {
+                    navController.navigate(ScreenRout.HomeScreenRoute(weatherObject?:WeatherResponse(0.0,0.0)).route) {
                         popUpTo(ScreenRout.SplashScreenRoute.route) { inclusive = true }
                     }
                 }
@@ -236,86 +241,81 @@ fun AppNavigation(
                 }
                 if(SharedManager.getSettings() == null) {
                     // Safe Weather Fetching
-                    if (weatherObject == WeatherResponse() || weatherObject == null) {
+                    if (weatherObject == WeatherResponse(0.0,0.0) || weatherObject == null) {
                         locationState.latitude?.let { lat ->
                             locationState.longitude?.let { lon ->
                                 LaunchedEffect(lat, lon) {
-                                    viewModel.getCurrentWeather(
+                                    fetchWeatherData(
+                                        viewModel,
                                         lat = lat,
                                         lon = lon,
                                         lang = "en",
-                                        units = AppConstants.WEATHER_UNIT
+                                        units = AppConstants.WEATHER_UNIT,
+                                        context
                                     )
-                                    viewModel.getWeatherInfo(lat = lat, lon = lon,    lang = "en",
-                                        units = AppConstants.WEATHER_UNIT)
+
                                 }
                             }
                         }
                     } else {
-                        viewModel.getCurrentWeather(
+                        fetchWeatherData(
+                            viewModel,
                             lat = weatherObject.lat ?: 0.0,
                             lon = weatherObject.lon ?: 0.0,
                             lang = "en",
-                            units = AppConstants.WEATHER_UNIT
-                        )
-                        viewModel.getWeatherInfo(
-                            lat = weatherObject.lat ?: 0.0,
-                            lon = weatherObject.lon ?: 0.0,
-                            lang = "en",
-                            units = AppConstants.WEATHER_UNIT
+                            units = AppConstants.WEATHER_UNIT,
+                            context
                         )
                     }
                 }else{
-                    val lang = SharedManager.getSettings()?.lang?:AppConstants.LANG_EN
-                    val unit = SharedManager.getSettings()?.unit?:AppConstants.WEATHER_UNIT
-                    if(SharedManager.getSettings()?.isMap == false){
-                        if (weatherObject == WeatherResponse() || weatherObject == null) {
-                            locationState.latitude?.let { lat ->
-                                locationState.longitude?.let { lon ->
-                                    LaunchedEffect(lat, lon) {
-                                        viewModel.getCurrentWeather(
-                                            lat = lat,
-                                            lon = lon,
-                                            lang = lang,
-                                            units = unit
-                                        )
-                                        viewModel.getWeatherInfo(lat = lat, lon = lon,  lang = lang,
-                                            units = unit)
+
+                    if(settings.isMap == false){
+                        if(settings.lat == null && settings.lon == null) {
+                            if (weatherObject == WeatherResponse(
+                                    0.0,
+                                    0.0
+                                ) || weatherObject == null
+                            ) {
+                                locationState.latitude?.let { lat ->
+                                    locationState.longitude?.let { lon ->
+                                        LaunchedEffect(lat, lon) {
+                                            fetchWeatherData(
+                                                viewModel,
+                                                lat = lat,
+                                                lon = lon,
+                                                lang = settings.lang,
+                                                units = settings.unit,
+                                                context
+                                            )
+                                        }
                                     }
                                 }
+                            } else {
+                                fetchWeatherData(
+                                    viewModel,
+                                    lat = weatherObject.lat ?: 0.0,
+                                    lon = weatherObject.lon ?: 0.0,
+                                    lang = settings.lang,
+                                    units = settings.unit,
+                                    context
+                                )
                             }
-                        } else {
-                            viewModel.getCurrentWeather(
-                                lat = weatherObject.lat ?: 0.0,
-                                lon = weatherObject.lon ?: 0.0,
-                                lang = lang,
-                                units = unit
-                            )
-                            viewModel.getWeatherInfo(
-                                lat = weatherObject.lat ?: 0.0,
-                                lon = weatherObject.lon ?: 0.0,
-                                lang = lang,
-                                units = unit
+                        }else{
+                            fetchWeatherData(
+                                viewModel,
+                                lat = settings.lat,
+                                lon = settings.lon,
+                                lang = settings.lang,
+                                units = settings.unit,
+                                context
                             )
                         }
-                    }else{
-                        viewModel.getCurrentWeather(
-                            lat = SharedManager.getSettings()?.lat?:0.0,
-                            lon = SharedManager.getSettings()?.lon?:0.0,
-                            lang = lang,
-                            units = unit
-                        )
-                        viewModel.getWeatherInfo(lat = SharedManager.getSettings()?.lat?:0.0,
-                            lon = SharedManager.getSettings()?.lon?:0.0,lang = lang,
-                            units = unit)
                     }
-
                 }
-
                 // Weather Display Logic
                 when (val currentWeather = weather) {
                     is WeatherResult.Loading -> {
-                        CircularProgressIndicator()
+                        PreviewCustomProgressIndicator()
                     }
 
                     is WeatherResult.Success -> {
@@ -325,7 +325,7 @@ fun AppNavigation(
 
                     is WeatherResult.Failure -> {
                         Text(
-                            text = "Weather Error: ${currentWeather.error.message}",
+                            text = "Weather Error: ${currentWeather.error}",
                             color = Color.Red
                         )
                     }
@@ -342,7 +342,7 @@ fun AppNavigation(
                 viewModel.getFavoriteWeathers()
                 when (val currentWeather = favWeather) {
                     is LocalDataState.Loading -> {
-                        CircularProgressIndicator()
+                        PreviewCustomProgressIndicator()
                     }
 
                     is LocalDataState.Success -> {
@@ -354,9 +354,7 @@ fun AppNavigation(
                             { selectedWeather ->
                                 navController.currentBackStackEntry?.savedStateHandle?.set("weatherData", selectedWeather?:currentWeather.data)
                                 navController.navigate("home_screen")
-
-
-                            }
+                            },viewModel
                         )
                     }
                     is LocalDataState.Fail-> {
@@ -373,22 +371,15 @@ fun AppNavigation(
                     ,{ navController.navigate("Fav_screen") })
             }
             composable("setting") {
-//                val context = LocalContext.current
-//                SharedManager.init(context)
-//                val currentLang = SharedManager.getSettings()?.lang ?: AppConstants.LANG_EN
-//                Utils.changeLang(context,currentLang)
                 SettingsScreen(
                     { navController.navigate("home_screen") },
-                    settingViewModel
+                    settingViewModel,locationViewModel
                 )
             }
 
         }
         }
     }
-
-
-
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val items = listOf(
@@ -437,11 +428,25 @@ fun BottomNavigationBar(navController: NavController) {
         }
     }
     }
-
 }
-data class BottomNavItem(
-    val label: String,
-    val route: String,
-    val icon: ImageVector
-)
+
+
+private  fun fetchWeatherData(
+    viewModel: WeatherViewModel,
+    lat: Double?,
+    lon: Double?,
+    lang: String,
+    units: String,
+    context: Context
+) {
+    val isOnline = NetworkUtils.isInternetAvailable(context)
+    if(isOnline) {
+        if (lat != null && lon != null) {
+            viewModel.getCurrentWeather(lat, lon, lang, units)
+            viewModel.getWeatherInfo(lat, lon, lang, units)
+        }
+    }else{
+        viewModel.getCurrentWeathers()
+    }
+}
 

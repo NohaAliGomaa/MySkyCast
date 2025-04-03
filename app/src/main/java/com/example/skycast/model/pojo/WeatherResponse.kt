@@ -17,18 +17,18 @@ import kotlinx.android.parcel.RawValue
 
 @Keep
 @Parcelize
-@Entity(tableName = "weather")
+@Entity(tableName = "weather",primaryKeys = ["lat", "lon"])
 @TypeConverters(Converters::class)
 data class WeatherResponse(
-    @SerializedName("lat") val lat: Double? = null,
-    @SerializedName("lon") val lon: Double? = null,
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @SerializedName("lat") val lat: Double,
+    @SerializedName("lon") val lon: Double,
     @Embedded val current: @RawValue Current? = null,
     @SerializedName("timezone") val timezone: String? = null,
     @SerializedName("timezone_offset") val timezoneOffset: Int? = null,
     @TypeConverters(Converters::class) val daily:  @RawValue List<DailyItem?>? = null,
     @TypeConverters(Converters::class)  val hourly:  @RawValue List<HourlyItem?>? = null,
     @TypeConverters(Converters::class) val minutely: @RawValue  List<MinutelyItem?>? = null,
+    @TypeConverters(Converters::class) val alerts: @RawValue  List<WeatherAlert>?=null,
     var isFavorite: Boolean? = false,
     var name: String? = null,
     var sunriseInfo: Int? = null,
@@ -128,4 +128,5 @@ data class MinutelyItem(
     val dt: Int? = null,
     val precipitation: Int? = null
 )
+
 

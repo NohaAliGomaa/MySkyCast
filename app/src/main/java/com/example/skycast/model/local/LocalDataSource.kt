@@ -30,7 +30,7 @@ class LocalDataSource(var context: Context) : ILocalDataSource  {
         return  room.getWeatherDao().insertCurrentWeather(weather)
     }
 
-    override fun getCurrentWeathers(): Flow<WeatherResponse>? {
+    override fun getCurrentWeathers(): Flow<List<WeatherResponse>?> {
        return  room.getWeatherDao().getCurrentWeathers()
     }
 

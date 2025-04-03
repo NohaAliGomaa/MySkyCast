@@ -21,11 +21,8 @@ class WeatherRepositry(
                                            lang:String,
                                            units: String,
                                            isOnline : Boolean) : Flow<WeatherResponse>{
-        return if (isOnline) {
-            remoteDataSource.getCurrentWeather(lat, lon,lang,units)
-        } else {
-            getCurrentWeathers() ?: flow { } // Return empty flow if null (optional safeguard)
-        }
+        return remoteDataSource.getCurrentWeather(lat, lon,lang,units)
+
     }
 
     override suspend fun getWeatherInfo(lat: Double, lon: Double,  lang: String,
@@ -37,7 +34,7 @@ class WeatherRepositry(
         return  localDataSource.getFavoriteWeathers()
     }
 
-    override suspend fun getCurrentWeathers(): Flow<WeatherResponse>? {
+    override  fun getCurrentWeathers(): Flow<List<WeatherResponse>?> {
         return localDataSource.getCurrentWeathers()
     }
 
@@ -48,6 +45,15 @@ class WeatherRepositry(
     override suspend fun insertCurrentWeather(weather: WeatherResponse): Long {
         return localDataSource.insertCurrentWeather(weather)
     }
+
+    override suspend fun insertOrUpdateCurrentWeather(weather: WeatherResponse) {
+        return localDataSource.insertOrUpdateCurrentWeather(weather)
+    }
+
+    override suspend fun deleteFavorite(weather: WeatherResponse): Int {
+        return localDataSource.deleteFavorite((weather))
+    }
+
     //shared
     override fun saveSettings(settings: Settings){
         // SharedManger.init(context)

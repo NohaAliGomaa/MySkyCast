@@ -3,13 +3,16 @@
     <string name="hourly_forecast">Hourly Forecast</string>
     <string name="five_day_forecast">5-day Forecast</string>
     <string name="wind_speed">Wind Speed</string>
-    <string name="sunrise">Sunrise: %s</string>
-    <string name="sunset">Sunset: %s</string>
-    <string name="pressure">Pressure: %s mbr</string>
+    <string name="sunrise">Sunrise</string>
+    <string name="sunset">Sunset</string>
+    <string name="pressure">Pressure</string>
     <string name="humidity">Humidity: %s</string>
     <string name="cloudiness">Cloud Cover: %s</string>
-    <string name="real_feel">Real Feel: %s° </string>
+    <string name="real_feel">Real Feel: %s </string>
     <string name="gusts_up_to">Gusts up to %1$s%2$s</string>
+    <string name="go_to_location_screen">Go to Location Screen</string>
+    <string name="weather_description">Weather Description</string>
+
 
 
 </resources>

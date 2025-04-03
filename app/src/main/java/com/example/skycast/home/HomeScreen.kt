@@ -105,9 +105,9 @@ fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo,isOnline : 
     val setting = SharedManager.getSettings()?:Settings(AppConstants.LANG_EN,
         false,AppConstants.WEATHER_UNIT)
     val weatherUnit = when (setting.unit) {
-        AppConstants.UNITS_CELSIUS -> if (setting.lang == AppConstants.LANG_AR) "°م" else "°C"
-        AppConstants.UNITS_FAHRENHEIT -> if (setting.lang == AppConstants.LANG_AR) "°ف" else "°F"
-        else -> if (setting.lang == AppConstants.LANG_AR) "°ك" else "°K"
+        AppConstants.UNITS_CELSIUS -> if (setting.lang == AppConstants.LANG_AR) "°م" else AppConstants.CELSIUS
+        AppConstants.UNITS_FAHRENHEIT -> if (setting.lang == AppConstants.LANG_AR) "°ف" else AppConstants.FAHRENHEIT
+        else -> if (setting.lang == AppConstants.LANG_AR) "°ك" else AppConstants.KELVIN
     }
     val context = LocalContext.current
     Utils.setAppLocale(setting.lang,context)
@@ -164,7 +164,8 @@ fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo,isOnline : 
                 ) {
                     if(setting.lang  == AppConstants.LANG_EN){
                         Text(
-                            "${getAddressEnglish(context,weather.lat,weather.lon)}",
+                            if(isOnline){ "${weatherInfo.name}"}
+                            else{"${weather.name}"},
                             color = Color.White,
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Medium
@@ -175,9 +176,19 @@ fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo,isOnline : 
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Medium
                         )
+                        Text(
+                            currentWeather?.weather?.firstOrNull()?.description?: "N/A",
+                            color = Color.LightGray
+                        )
+
+                        Row(modifier = Modifier.padding(8.dp)) {
+                            Text("H°: ${dailyWeather?.get(0)?.temp?.max}°", color = Color.White)
+                            Text("L°: ${dailyWeather?.get(0)?.temp?.min}°", color = Color.White)
+                        }
                     }else{
                         Text(
-                            "${getAddressArabic(context,weather.lat?:0.0,weather.lon?:0.0)}",
+                            if(isOnline){ "${weatherInfo.name}"}
+                            else{"${weather.name}"},
                             color = Color.White,
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Medium
@@ -188,16 +199,21 @@ fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo,isOnline : 
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Medium
                         )
-                    }
-                    Text(
-                        currentWeather?.weather?.firstOrNull()?.description ?: "N/A",
-                        color = Color.LightGray
-                    )
+                        Text(
+                            currentWeather?.weather?.firstOrNull()?.description?: "N/A",
+                            color = Color.LightGray
+                        )
 
-                    Row(modifier = Modifier.padding(8.dp)) {
-                        Text("H°: ${dailyWeather?.get(0)?.temp?.max}°", color = Color.White)
-                        Text("L°: ${dailyWeather?.get(0)?.temp?.min}°", color = Color.White)
+                        Row(modifier = Modifier.padding(8.dp)) {
+                            Text("ع°: ${
+                                englishNumberToArabicNumber( dailyWeather?.get(0)?.temp?.max.toString())
+                            }°", color = Color.White)
+                            Text("ص°: ${
+                                englishNumberToArabicNumber(dailyWeather?.get(0)?.temp?.min.toString())
+                            }°", color = Color.White)
+                        }
                     }
+
                 }
                 Spacer(modifier = Modifier.height(150.dp))
 
@@ -290,58 +306,6 @@ fun WeatherScreen(weather: WeatherResponse, weatherInfo: WeatherInfo,isOnline : 
         }
     }
 }
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview(showSystemUi = true)
-@Composable
-fun WeatherPreview() {
-    val mockWeather = WeatherResponse(
-        current = Current(
-            temp = 24.0,
-            windSpeed = 5.5,
-            windDeg = 90,
-            windGust = 8.0,
-            weather = listOf(
-                WeatherItem(
-                    main = "Clear",
-                    description = "Sunny",
-                    icon = "01d"
-                )
-            )
-        ),
-        hourly = List(4) {
-            HourlyItem(
-                dt = 1618317040,
-                temp = 22.0,
-                windSpeed = 10.5,
-                weather = listOf(
-                    WeatherItem(
-                        main = "Clear",
-                        description = "Sunny",
-                        icon = "01d"
-                    )
-                )
-            )
-        },
-        daily = List(5) {
-            DailyItem(
-                dt = 1618317040,
-                temp = Temp(day = 26.0, night = 18.0, max = 27.0, min = 16.0),
-                weather = listOf(
-                    WeatherItem(
-                        main = "Cloudy",
-                        description = "Overcast clouds",
-                        icon = "02d"
-                    )
-                )
-            )
-        }
-    )
-    val weatherInfo = WeatherInfo(name = "Ismaillia", sys = Sys("", 5, 18))
-    WeatherScreen(mockWeather, weatherInfo,true)
-}
-
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HourlyWeatherCard(hour: HourlyItem) {
@@ -349,8 +313,8 @@ fun HourlyWeatherCard(hour: HourlyItem) {
     Card(
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
-            .fillMaxWidth()
-            .height(110.dp)
+            .width(80.dp)
+            .height(130.dp)
             .padding(vertical = 6.dp, horizontal = 12.dp),
         colors = CardDefaults.cardColors(
             containerColor =Color(PrimaryColor.value).copy(alpha = 0.25f)// subtle background
@@ -370,17 +334,17 @@ fun HourlyWeatherCard(hour: HourlyItem) {
                         color = Color.White
                     )
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
 
                     WeatherIcon(iconCode = hour.weather?.firstOrNull()?.icon ?: "01d", size = 24.dp)
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = "${englishNumberToArabicNumber(hour.temp.toString())}°",
                         style = MaterialTheme.typography.bodyMedium
                         , color = Color.White
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
                     if(SharedManager.getSettings()?.lang == "en"){
                         Text(
                             text = "${englishNumberToArabicNumber(hour.windSpeed.toString())}${AppConstants.WINDSPEED}", // Add wind speed in your model
@@ -401,17 +365,17 @@ fun HourlyWeatherCard(hour: HourlyItem) {
                     color = Color.White
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
 
                 WeatherIcon(iconCode = hour.weather?.firstOrNull()?.icon ?: "01d", size = 24.dp)
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = "${hour.temp}°",
                     style = MaterialTheme.typography.bodyMedium
                     , color = Color.White
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 if(SharedManager.getSettings()?.lang == "en"){
                     Text(
                         text = "${hour.windSpeed}${AppConstants.WINDSPEED}", // Add wind speed in your model
@@ -531,7 +495,8 @@ fun WindSpeedCard(windSpeed: Double, windDeg: Int, windGust: Double?) {
                     )
                 }else{
                     Text(
-                        text = "${String.format("%.1f", windSpeed)} ${AppConstants.WINDSPEEDARABIC}",
+                        englishNumberToArabicNumber(String.format("%.1f", windSpeed)) +
+                                " ${AppConstants.WINDSPEEDARABIC}",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -652,7 +617,7 @@ fun sunriseAndSet(rise : Int, set : Int){
     Card(
         modifier = Modifier
             .padding(8.dp)
-            .width(160.dp)
+            .width(170.dp)
             .height(90.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
@@ -670,13 +635,13 @@ fun sunriseAndSet(rise : Int, set : Int){
             // Text Info
             Column {
                 Text(
-                    text = "${unixToHour(set.toLong())}  " + stringResource(id = R.string.sunrise),
+                    text =   stringResource(id = R.string.sunrise) +"${unixToHour(rise.toLong())}  ",
                     style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
                     , fontSize = 16.sp
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "${unixToHour(set.toLong())}  " + stringResource(id = R.string.sunset),
+                    text = stringResource(id = R.string.sunset) + "${unixToHour(set.toLong())}  " ,
                     style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
                     , fontSize = 16.sp
                 )
@@ -690,7 +655,7 @@ fun weatherProperities(pressure : Int, humidity : Int, clouds: Int){
     Card(
         modifier = Modifier
             .padding(12.dp)
-            .width(180.dp)
+            .width(170.dp)
             .height(160.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
@@ -709,13 +674,13 @@ fun weatherProperities(pressure : Int, humidity : Int, clouds: Int){
             Column {
                 if(SharedManager.getSettings()?.lang == "ar"){
                     Text(
-                        text = stringResource(id = R.string.pressure) + " ${pressure}${AppConstants.MBARARABIC}",
+                        text = stringResource(id = R.string.pressure," ${pressure}${AppConstants.MBARARABIC}") ,
                         style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
                         , fontSize = 16.sp
                     )
                 }else {
                     Text(
-                        text = stringResource(id = R.string.pressure) + " ${pressure}${AppConstants.MBAR}",
+                        text = stringResource(id = R.string.pressure," ${pressure}${AppConstants.MBAR}")  ,
                         style = MaterialTheme.typography.titleMedium.copy(color = Color.White),
                         fontSize = 16.sp
                     )

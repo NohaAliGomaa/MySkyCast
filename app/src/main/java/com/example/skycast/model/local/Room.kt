@@ -34,8 +34,8 @@ interface WeatherDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCurrentWeather(weather :WeatherResponse): Long
 
-    @Query("SELECT * FROM weather where isFavorite= false LIMIT 1")
-    fun getCurrentWeathers(): Flow<WeatherResponse>?
+    @Query("SELECT * FROM weather ")
+    fun getCurrentWeathers(): Flow<List<WeatherResponse>?>
 
     @Transaction
     suspend fun insertOrUpdateCurrentWeather(weather :WeatherResponse)
@@ -50,13 +50,13 @@ interface WeatherDao {
 
 }
 
-@Database(entities = [WeatherResponse::class], version = 3)
+@Database(entities = [WeatherResponse::class], version = 26)
 @TypeConverters(Converters::class)
 abstract class WeatherDataBse : RoomDatabase() {
     abstract fun getWeatherDao(): WeatherDao
 //    abstract fun alertDao():AlertDao
     companion object {
-//        @Volatile
+        @Volatile
         private var INSTANCE: WeatherDataBse? = null
         fun getInstance(ctx: Context): WeatherDataBse {
             return INSTANCE ?: synchronized(this) {

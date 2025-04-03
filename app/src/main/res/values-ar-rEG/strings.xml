@@ -4,14 +4,14 @@
     <string name="hourly_forecast">توقعات الساعة</string>
     <string name="five_day_forecast">توقعات 5 أيام</string>
     <string name="wind_speed">سرعة الرياح</string>
-    <string name="sunrise">شروق الشمس: %s</string>
-    <string name="sunset">غروب الشمس: %s</string>
-    <string name="pressure">الضغط: %s مبر</string>
+    <string name="sunrise">شروق الشمس</string>
+    <string name="sunset">غروب الشمس</string>
+    <string name="pressure">الضغط</string>
     <string name="humidity">الرطوبة: %s</string>
     <string name="cloudiness">تغطية السحب: %s</string>
     <string name="real_feel">الشعور الفعلي: %s°</string>
     <string name="gusts_up_to">الرياح العاتية تصل إلى %1$s%2$s</string>
-
-
+    <string name="go_to_location_screen">اذهب إلى شاشة الموقع</string>
+    <string name="weather_description">وصف الطقس</string>
 
 </resources>

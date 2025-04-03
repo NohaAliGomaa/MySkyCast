@@ -20,9 +20,11 @@ object SharedManager {
     }
 
     fun saveSettings(settings: Settings) {
+        val json = gson.toJson(settings)
         sharedPreferences.edit()
-            .putString(SETTINGS, gson.toJson(settings))
+            .putString(SETTINGS, json)
             .apply()
+        Log.i("SharedManager", "Settings saved: $json")
     }
 
     fun getSettings(): Settings? {
@@ -30,11 +32,18 @@ object SharedManager {
             Log.e("SharedManager", "SharedPreferences not initialized. Call init(context) first.")
             return null
         }
-        return sharedPreferences.getString(SETTINGS, null)?.let {
-            gson.fromJson(it, Settings::class.java)
+        val settingsJson = sharedPreferences.getString(SETTINGS, null)
+        if (settingsJson != null) {
+            Log.d("SharedManager", "Settings retrieved: $settingsJson")
+            return gson.fromJson(settingsJson, Settings::class.java)
+        } else {
+            Log.d("SharedManager", "No settings found.")
+            return null
         }
     }
+    fun updateUnit(unit :String){
 
+    }
 //    fun saveAlertSettings(alertSettings: AlertSettings) {
 //        sharedPreferences.edit()
 //            .putString(ALERT_SETTINGS, gson.toJson(alertSettings))
@@ -47,3 +56,23 @@ object SharedManager {
 //        }
 //    }
 }
+//class SharedManager(private val context: Context) {
+//
+//    private val sharedPreferences: SharedPreferences = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+//
+//    fun putBoolean(key: String, value: Boolean) {
+//        sharedPreferences.edit().putBoolean(key, value).apply()
+//    }
+//
+//    fun getBoolean(key: String, defaultValue: Boolean): Boolean {
+//        return sharedPreferences.getBoolean(key, defaultValue)
+//    }
+//
+//    fun putString(key: String, value: String) {
+//        sharedPreferences.edit().putString(key, value).apply()
+//    }
+//
+//    fun getString(key: String, defaultValue: String): String {
+//        return sharedPreferences.getString(key, defaultValue) ?: defaultValue
+//    }
+//}

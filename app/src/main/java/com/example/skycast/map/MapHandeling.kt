@@ -1,5 +1,6 @@
 package com.example.skycast.map
 
+import android.os.Bundle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -31,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.skycast.model.sharedpreferences.SharedManager
@@ -39,6 +42,7 @@ import com.example.skycast.ui.theme.TertiaryColor
 import com.example.skycast.viewmodel.LocationViewModel
 import com.example.skycast.viewmodel.WeatherViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -70,7 +74,6 @@ fun LocationScreen(locationViewModel: LocationViewModel ,
 
     }
 }
-
 @Composable
 fun LocationPickerMap(
     selectedLatLng: LatLng?,
@@ -84,6 +87,8 @@ fun LocationPickerMap(
         position = CameraPosition.fromLatLngZoom(markerState.position, 10f)
     }
 
+    // New state for showing location selection dialog
+    var isLocationDialogVisible by remember { mutableStateOf(false) }
 
     // Always move camera and marker when location changes
     LaunchedEffect(selectedLatLng) {
@@ -101,8 +106,9 @@ fun LocationPickerMap(
             uiSettings = MapUiSettings(scrollGesturesEnabled = true, zoomGesturesEnabled = true),
             onMapClick = { latLng ->
                 onLocationSelected(latLng)
+                // Show dialog after selecting a location
+                isLocationDialogVisible = true
             }
-
         ) {
             Marker(
                 state = markerState,
@@ -117,18 +123,74 @@ fun LocationPickerMap(
                 viewModel.insertFavorite(
                     selectedLatLng?.latitude ?: defaultLocation.latitude,
                     selectedLatLng?.longitude ?: defaultLocation.longitude,
-                    SharedManager.getSettings()?.lang?:AppConstants.LANG_EN,
-                    SharedManager.getSettings()?.unit?:AppConstants.WEATHER_UNIT
+                    SharedManager.getSettings()?.lang ?: AppConstants.LANG_EN,
+                    SharedManager.getSettings()?.unit ?: AppConstants.WEATHER_UNIT
                 )
-                onNavigateToFav() },
+                viewModel.getFavoriteWeathers()
+                onNavigateToFav()
+            },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(16.dp)
         ) {
             Text("Add To Favourite")
         }
+
+        // Show dialog to choose between selecting a new location or picking an existing one
+        if (isLocationDialogVisible) {
+            LocationSelectionDialog(
+                onSelectExisting = {
+                    // Navigate to the list of favorites
+                    onNavigateToFav()
+                    viewModel.getFavoriteWeathers()
+                    isLocationDialogVisible = false
+                },
+                onSelectNew = {
+                    // Add the location as new favorite and dismiss the dialog
+                    viewModel.insertFavorite(
+                        selectedLatLng?.latitude ?: defaultLocation.latitude,
+                        selectedLatLng?.longitude ?: defaultLocation.longitude,
+                        SharedManager.getSettings()?.lang ?: AppConstants.LANG_EN,
+                        SharedManager.getSettings()?.unit ?: AppConstants.WEATHER_UNIT
+                    )
+                    viewModel.getFavoriteWeathers()
+                    isLocationDialogVisible = false
+                }
+            )
+        }
     }
 }
+
+@Composable
+fun LocationSelectionDialog(
+    onSelectExisting: () -> Unit,
+    onSelectNew: () -> Unit
+) {
+    // Dialog content where user chooses between existing or new location
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(16.dp)
+    ) {
+        Text("Choose an Option", style = MaterialTheme.typography.titleMedium)
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            onClick = { onSelectExisting() },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Select from Existing Locations")
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            onClick = { onSelectNew() },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Use This New Location")
+        }
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -185,7 +185,7 @@ object Utils {
             return address?.get(0)?.countryName.toString()
 
         }        else
-            return address?.get(0)?.countryName.toString()+" , "+address?.get(0)?.adminArea
+            return address?.get(0)?.adminArea.toString()
     }
     fun getAddressArabic(context: Context, lat:Double, lon:Double):String{
         var address:MutableList<Address>?=null
@@ -207,7 +207,7 @@ object Utils {
 
         }
         else
-            return address?.get(0)?.countryName.toString()+" , "+address?.get(0)?.adminArea
+            return address?.get(0)?.adminArea.toString()
 
     }
 
