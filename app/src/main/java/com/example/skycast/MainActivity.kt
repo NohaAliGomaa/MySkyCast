@@ -75,9 +75,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val repo = WeatherRepositry(RemoteDataSourceImpl(), LocalDataSource(this))
+        val repo =WeatherRepositry(RemoteDataSourceImpl(),LocalDataSource(this))
         val isOnline = NetworkUtils.isInternetAvailable(this)
-        val factory = WeatherFactory(repo, this)
+        val factory = WeatherFactory(repo,this)
         val viewModel = ViewModelProvider(this, factory).get(WeatherViewModel::class.java)
         val notificationFactory = NotificationsViewModel.Factory(
             repository = WeatherRepositry(
@@ -87,40 +87,30 @@ class MainActivity : ComponentActivity() {
             workManager = WeatherManager(this),
             context = this
         )
-        val notificationViewModel =
-            ViewModelProvider(this, notificationFactory).get(NotificationsViewModel::class.java)
+        val notificationViewModel = ViewModelProvider(this, notificationFactory ).get(NotificationsViewModel::class.java)
         val app = application as MyApp
         val locationFactory = LocationFactory(app)
-        val locationViewModel =
-            ViewModelProvider(this, locationFactory).get(LocationViewModel::class.java)
-        val settingFactory = SettingsViewModelFactory(repo)
-        val settingViewModel =
-            ViewModelProvider(this, settingFactory).get(SettingsViewModel::class.java)
+        val locationViewModel = ViewModelProvider(this, locationFactory).get(LocationViewModel::class.java)
+     val settingFactory = SettingsViewModelFactory(repo)
+        val settingViewModel = ViewModelProvider(this, settingFactory).get(SettingsViewModel::class.java)
 
         setContent {
             SkyCastTheme {
-                AppNavigation(
-                    viewModel,
-                    isOnline,
-                    locationViewModel,
-                    settingViewModel,
-                    notificationViewModel
-                )
+                AppNavigation(viewModel,isOnline,locationViewModel,settingViewModel,notificationViewModel)
             }
         }
     }
 }
-
 @SuppressLint("RememberReturnType")
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation(
     viewModel: WeatherViewModel,
-    isOnline: Boolean,
+    isOnline : Boolean,
     locationViewModel: LocationViewModel,
     settingViewModel: SettingsViewModel,
-    notificationViewModel: NotificationsViewModel
+    notificationViewModel:NotificationsViewModel
 
 ) {
     val context = LocalContext.current
@@ -130,11 +120,11 @@ fun AppNavigation(
     val weatherInfo by viewModel.weatherInfo.collectAsState()
     //hande bottom bar
     val navController = rememberNavController()
-    val bottomBarRoutes = listOf("alert", "Fav_screen", "setting", "home_screen", "location")
+    val bottomBarRoutes = listOf("alert", "Fav_screen", "setting","home_screen","location")
     // Check current route
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
-    val settings by settingViewModel.settings.collectAsState()
+    val settings  by settingViewModel.settings.collectAsState()
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -163,27 +153,22 @@ fun AppNavigation(
         NavHost(
             navController = navController,
             startDestination = ScreenRout.SplashScreenRoute.route,
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
                 .padding(innerPadding)
 
         ) {
-            composable(ScreenRout.SplashScreenRoute.route) { backStackEntry ->
+            composable(ScreenRout.SplashScreenRoute.route) {backStackEntry ->
                 val weatherObject = navController.previousBackStackEntry
                     ?.savedStateHandle
                     ?.get<WeatherResponse>("weatherData")
                 SplashScreen {
-                    navController.navigate(
-                        ScreenRout.HomeScreenRoute(
-                            weatherObject ?: WeatherResponse(0.0, 0.0)
-                        ).route
-                    ) {
+                    navController.navigate(ScreenRout.HomeScreenRoute(weatherObject?:WeatherResponse(0.0,0.0)).route) {
                         popUpTo(ScreenRout.SplashScreenRoute.route) { inclusive = true }
                     }
                 }
             }
 
-            composable("home_screen") { backStackEntry ->
+            composable("home_screen") {backStackEntry ->
                 val weatherObject = navController.previousBackStackEntry
                     ?.savedStateHandle
                     ?.get<WeatherResponse>("weatherData")
@@ -252,9 +237,9 @@ fun AppNavigation(
                         )
                     }
                 }
-                if (SharedManager.getSettings() == null) {
+                if(SharedManager.getSettings() == null) {
                     // Safe Weather Fetching
-                    if (weatherObject == WeatherResponse(0.0, 0.0) || weatherObject == null) {
+                    if (weatherObject == WeatherResponse(0.0,0.0) || weatherObject == null) {
                         locationState.latitude?.let { lat ->
                             locationState.longitude?.let { lon ->
                                 LaunchedEffect(lat, lon) {
@@ -280,12 +265,11 @@ fun AppNavigation(
                             context
                         )
                     }
-                } else {
-                    if (settings.isMap == false) {
+                }else{
+                    if(settings.isMap == false){
                         if (weatherObject == WeatherResponse(0.0, 0.0)
-                            || weatherObject == null
-                        ) {
-                            if (settings.lat == null && settings.lon == null) {
+                            || weatherObject == null) {
+                            if(settings.lat == null && settings.lon == null)  {
                                 locationState.latitude?.let { lat ->
                                     locationState.longitude?.let { lon ->
                                         LaunchedEffect(lat, lon) {
@@ -300,7 +284,7 @@ fun AppNavigation(
                                         }
                                     }
                                 }
-                            } else {
+                            } else{
                                 fetchWeatherData(
                                     viewModel,
                                     lat = settings.lat,
@@ -311,7 +295,7 @@ fun AppNavigation(
                                 )
                             }
                         }
-                    } else {
+                        } else {
                         fetchWeatherData(
                             viewModel,
                             lat = weatherObject?.lat ?: 0.0,
@@ -330,7 +314,7 @@ fun AppNavigation(
 
                     is WeatherResult.Success -> {
 
-                        WeatherScreen(weatherObject ?: currentWeather.data, weatherInfo, isOnline)
+                        WeatherScreen(weatherObject?:currentWeather.data, weatherInfo, isOnline)
                     }
 
                     is WeatherResult.Failure -> {
@@ -349,7 +333,7 @@ fun AppNavigation(
                 )
             }
 
-            composable(ScreenRout.FavScreenRoute.route) { backStackEntry ->
+            composable(ScreenRout.FavScreenRoute.route) {backStackEntry ->
                 viewModel.getFavoriteWeathers()
                 when (val currentWeather = favWeather) {
                     is LocalDataState.Loading -> {
@@ -361,18 +345,14 @@ fun AppNavigation(
 
                         FavWeatherScreen(
                             favList,
-                            { navController.navigate("location") },
+                             { navController.navigate("location") },
                             { selectedWeather ->
-                                navController.currentBackStackEntry?.savedStateHandle?.set(
-                                    "weatherData",
-                                    selectedWeather ?: currentWeather.data
-                                )
+                                navController.currentBackStackEntry?.savedStateHandle?.set("weatherData", selectedWeather?:currentWeather.data)
                                 navController.navigate("home_screen")
-                            }, viewModel
+                            },viewModel
                         )
                     }
-
-                    is LocalDataState.Fail -> {
+                    is LocalDataState.Fail-> {
                         Text(
                             text = "Weather Error: ${currentWeather.msg.message}",
                             color = Color.Red
@@ -382,19 +362,19 @@ fun AppNavigation(
             }
             composable("location") {
                 LocationScreen(locationViewModel,
-                    viewModel, { navController.navigate("Fav_screen") })
+                    viewModel
+                    ,{ navController.navigate("Fav_screen") })
             }
             composable("setting") {
                 SettingsScreen(
                     { navController.navigate("home_screen") },
-                    settingViewModel, locationViewModel
+                    settingViewModel,locationViewModel
                 )
             }
 
         }
+        }
     }
-}
-
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val items = listOf(
@@ -416,38 +396,37 @@ fun BottomNavigationBar(navController: NavController) {
                     )
                 )
             )
+    ){ NavigationBar(
+        containerColor = Color.Transparent // Transparent to show the Box's gradient
     ) {
-        NavigationBar(
-            containerColor = Color.Transparent // Transparent to show the Box's gradient
-        ) {
-            items.forEach { item ->
-                NavigationBarItem(
-                    icon = { Icon(item.icon, contentDescription = item.label) },
-                    label = { Text(item.label) },
-                    selected = currentRoute == item.route,
-                    onClick = {
-                        if (currentRoute != item.route) {
-                            navController.navigate(item.route) {
-                                popUpTo("home") { inclusive = false }
-                                launchSingleTop = true
-                            }
+        items.forEach { item ->
+            NavigationBarItem(
+                icon = { Icon(item.icon, contentDescription = item.label) },
+                label = { Text(item.label) },
+                selected = currentRoute == item.route,
+                onClick = {
+                    if (currentRoute != item.route) {
+                        navController.navigate(item.route) {
+                            popUpTo("home") { inclusive = false }
+                            launchSingleTop = true
                         }
-                    }, colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color.White,
-                        selectedTextColor = Color.White,
-                        indicatorColor = PrimaryColor.copy(alpha = 1f), // Background behind icon
-                        unselectedIconColor = Color.LightGray,
-                        unselectedTextColor = Color.LightGray
-                    )
-
+                    }
+                }, colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = Color.White,
+                    selectedTextColor = Color.White,
+                    indicatorColor = PrimaryColor.copy(alpha = 1f), // Background behind icon
+                    unselectedIconColor = Color.LightGray,
+                    unselectedTextColor = Color.LightGray
                 )
-            }
+
+            )
         }
+    }
     }
 }
 
 
-private fun fetchWeatherData(
+private  fun fetchWeatherData(
     viewModel: WeatherViewModel,
     lat: Double?,
     lon: Double?,
@@ -456,12 +435,12 @@ private fun fetchWeatherData(
     context: Context
 ) {
     val isOnline = NetworkUtils.isInternetAvailable(context)
-    if (isOnline) {
+    if(isOnline) {
         if (lat != null && lon != null) {
             viewModel.getCurrentWeather(lat, lon, lang, units)
             viewModel.getWeatherInfo(lat, lon, lang, units)
         }
-    } else {
+    }else{
         viewModel.getCurrentWeathers()
     }
 }

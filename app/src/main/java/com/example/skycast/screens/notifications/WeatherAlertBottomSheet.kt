@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.skycast.R
 import com.example.skycast.model.pojo.MyAlert
@@ -48,7 +49,7 @@ fun WeatherAlertBottomSheet(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "${R.string.schedule_weather_alert}",
+                text = stringResource(id =R.string.schedule_weather_alert),
                 style = MaterialTheme.typography.titleLarge
             )
 
@@ -73,7 +74,7 @@ fun WeatherAlertBottomSheet(
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("${R.string.schedule_alert}")
+                Text(stringResource(id =R.string.schedule_alert))
             }
 
             Spacer(modifier = Modifier.height(16.dp))

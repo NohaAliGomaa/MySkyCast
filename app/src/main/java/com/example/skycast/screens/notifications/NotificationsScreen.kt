@@ -242,12 +242,12 @@ private fun SwipeableNotificationCard(
             false
         }
     )
-
+    stringResource(id = R.string.favourite)
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { androidx.compose.material3.Text("${R.string.delete_alert} ") },
-            text = { androidx.compose.material3.Text("${R.string.delete_alert_message} ") },
+            title = { androidx.compose.material3.Text(stringResource(id = R.string.delete_alert)) },
+            text = { androidx.compose.material3.Text(stringResource(id =R.string.delete_alert_message)) },
             confirmButton = {
                 androidx.compose.material3.Button(
                     onClick = {
@@ -258,7 +258,7 @@ private fun SwipeableNotificationCard(
                         containerColor = androidx.compose.material3.MaterialTheme.colorScheme.error
                     )
                 ) {
-                    androidx.compose.material3.Text("${R.string.delete} ")
+                    androidx.compose.material3.Text(stringResource(id =R.string.delete))
                 }
             },
             dismissButton = {
@@ -268,7 +268,7 @@ private fun SwipeableNotificationCard(
                         containerColor = androidx.compose.material3.MaterialTheme.colorScheme.secondary
                     )
                 ) {
-                    androidx.compose.material3.Text("${R.string.cancel} ")
+                    androidx.compose.material3.Text(stringResource(id =R.string.cancel))
                 }
             }
         )
@@ -313,7 +313,7 @@ private fun NotificationCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 androidx.compose.material3.Text(
-                    text = "${R.string.weather_alert} ",
+                    text = stringResource(id =R.string.weather_alert),
                     style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
                     color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
                 )

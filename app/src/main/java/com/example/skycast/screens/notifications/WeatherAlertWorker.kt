@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.compose.ui.res.stringResource
 import androidx.core.app.NotificationCompat
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -91,12 +92,12 @@ class WeatherAlertWorker(
         val isConnected = NetworkUtils.isInternetAvailable(context)
         val contentText = if (weatherInfo != null) {
             if (isConnected) {
-                "${R.string.temperature} ${weatherInfo.temperature}°\n${R.string.condition} ${weatherInfo.description?.capitalize()}"
+                "🌡️ Temperature: ${weatherInfo.temperature}°\n🌤️ Condition: ${weatherInfo.description?.capitalize()}"
             } else {
-                "${R.string.temperature} ${weatherInfo.temperature}°\n${R.string.condition} ${weatherInfo.description?.capitalize()}\n${R.string.expired_warning}."
+                "🌡️ Temperature: ${weatherInfo.temperature}°\n🌤️ Condition: ${weatherInfo.description?.capitalize()}\n⚠️ This data is expired. Check your connection and try Aurora again."
             }
         } else {
-            "${R.string.weather_update_available}"
+            "🌦️ Weather conditions update available"
         }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
@@ -108,7 +109,8 @@ class WeatherAlertWorker(
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .addAction(android.R.drawable.ic_delete, "${R.string.dismiss}", dismissPendingIntent)
+            .addAction(android.R.drawable.ic_delete,
+                "Dismiss", dismissPendingIntent)
             .setStyle(NotificationCompat.BigTextStyle().bigText(contentText))
             .apply {
                 if (useDefaultSound) {

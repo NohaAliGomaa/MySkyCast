@@ -72,7 +72,6 @@ import androidx.compose.ui.*
 import androidx.compose.ui.Alignment.Companion.BottomEnd
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
 import com.example.skycast.model.sharedpreferences.SharedManager
 import com.example.skycast.model.util.AppConstants
 import com.example.skycast.model.util.Utils
@@ -102,8 +101,7 @@ fun FavWeatherScreen(
             )
             .padding(16.dp)
     ) {
-        Text(text = stringResource(id = R.string.favourite),
-            style = androidx.compose.material3.MaterialTheme.typography.headlineMedium)
+        Text( text = stringResource(id =R.string.favourite), color = Color.White,style = androidx.compose.material3.MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(12.dp))
         if (weatherList.isEmpty()) {
             EmptyState(onNavigateToLocation)
