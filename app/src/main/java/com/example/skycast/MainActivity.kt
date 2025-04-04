@@ -34,13 +34,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.*
 import com.example.skycast.ui.theme.SkyCastTheme
-import com.example.skycast.home.WeatherScreen
+import com.example.skycast.screens.home.WeatherScreen
 import com.example.skycast.model.remote.RemoteDataSourceImpl
 import com.example.skycast.model.repositries.WeatherRepositry
 import com.example.skycast.model.result.WeatherResult
 import com.example.skycast.model.route.ScreenRout
 import com.example.skycast.model.util.AppConstants
-import com.example.skycast.splash.SplashScreen
+import com.example.skycast.screens.splash.SplashScreen
 import com.example.skycast.viewmodel.LocationViewModel
 import com.example.skycast.viewmodel.WeatherFactory
 import com.example.skycast.viewmodel.WeatherViewModel
@@ -49,8 +49,8 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.Brush
-import com.example.skycast.favourite.FavWeatherScreen
-import com.example.skycast.map.LocationScreen
+import com.example.skycast.screens.favourite.FavWeatherScreen
+import com.example.skycast.screens.map.LocationScreen
 import com.example.skycast.model.local.LocalDataSource
 import com.example.skycast.model.pojo.WeatherResponse
 import com.example.skycast.model.result.LocalDataState
@@ -58,15 +58,15 @@ import com.example.skycast.model.sharedpreferences.SharedManager
 import com.example.skycast.model.util.BottomNavItem
 import com.example.skycast.model.util.NetworkUtils
 import com.example.skycast.model.util.PreviewCustomProgressIndicator
-import com.example.skycast.setting.SettingsScreen
+import com.example.skycast.screens.setting.SettingsScreen
 import com.example.skycast.ui.theme.PrimaryColor
 import com.example.skycast.ui.theme.TertiaryColor
 import com.example.skycast.viewmodel.LocationFactory
 import com.example.skycast.viewmodel.NotificationsViewModel
 import com.example.skycast.viewmodel.SettingsViewModel
 import com.example.skycast.viewmodel.SettingsViewModelFactory
-import com.example.skycast.notifications.NotificationsScreen
-import com.example.skycast.notifications.WeatherManager
+import com.example.skycast.screens.notifications.NotificationsScreen
+import com.example.skycast.screens.notifications.WeatherManager
 
 
 class MainActivity : ComponentActivity() {
@@ -113,7 +113,6 @@ fun AppNavigation(
     notificationViewModel:NotificationsViewModel
 
 ) {
-
     val context = LocalContext.current
     val locationState by locationViewModel.locationState.collectAsState()
     val weather by viewModel.weather.collectAsStateWithLifecycle()
@@ -327,6 +326,7 @@ fun AppNavigation(
                 }
             }
             composable("alert") {
+                notificationViewModel.updateAlerts()
                 NotificationsScreen(
                     onBackClick = {},
                     viewModel = notificationViewModel,
@@ -334,7 +334,6 @@ fun AppNavigation(
             }
 
             composable(ScreenRout.FavScreenRoute.route) {backStackEntry ->
-
                 viewModel.getFavoriteWeathers()
                 when (val currentWeather = favWeather) {
                     is LocalDataState.Loading -> {

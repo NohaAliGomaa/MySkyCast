@@ -1,4 +1,4 @@
-package com.example.skycast.map
+package com.example.skycast.screens.map
 
 import android.os.Bundle
 import androidx.compose.foundation.background

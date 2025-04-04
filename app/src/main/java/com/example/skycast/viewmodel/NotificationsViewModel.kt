@@ -12,7 +12,7 @@ import com.example.skycast.model.pojo.AlertSettings
 import com.example.skycast.model.pojo.MyAlert
 import com.example.skycast.model.repositries.WeatherRepositry
 import com.example.skycast.model.result.LocalDataStateAlerts
-import com.example.skycast.notifications.WeatherManager
+import com.example.skycast.screens.notifications.WeatherManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,35 +41,28 @@ class NotificationsViewModel(
         viewModelScope.launch {
             try {
                 repository.getAlerts().collect { alerts ->
-                    val currentTime = System.currentTimeMillis()
-
-                    // Split alerts into valid and expired
-                    val (expired, valid) = alerts.partition { alert ->
-                        alert.startTime?:0 + alert.duration!!  <= currentTime
-                    }
-
-                    // Delete expired alerts first
-                    expired.forEach { alert ->
-                        Log.d("NotificationsVM", "Deleting expired alert: ${alert.id}")
-                        val result = repository.deleteAlert(alert)
-                        if (result > 0) {
-                            workManager.cancelWeatherAlert(alert.id.toString())
-                            Log.d(
-                                "NotificationsVM",
-                                "Successfully deleted expired alert: ${alert.id}"
-                            )
-                        } else {
-                            Log.e("NotificationsVM", "Failed to delete expired alert: ${alert.id}")
-                        }
-                    }
-
                     // Update UI with valid alerts
-                    _scheduledAlerts.value = valid
+                    _scheduledAlerts.value = alerts
+                    deleteFromList()
                 }
             } catch (e: Exception) {
                 Log.e("NotificationsVM", "Error loading alerts", e)
             }
         }
+    }
+    fun deleteFromList( ){
+        val currentTime = System.currentTimeMillis()
+
+        val updatedAlerts = _scheduledAlerts.value.filter { alert ->
+            val duration = alert.duration ?: 10
+            val startTime = alert.startTime ?: 0
+            val endTime = startTime + duration
+
+            endTime > currentTime // Keep only non-expired alerts
+        }
+
+        _scheduledAlerts.value = updatedAlerts
+
     }
 
     fun scheduleAlert(settings: MyAlert) {
@@ -79,12 +72,13 @@ class NotificationsViewModel(
                     requestOverlayPermission()
                     return@launch
                 }
-
                 // Add insertion result check
+                Log.d("InsertDebug", "Scheduling alert: ${settings.dbId}")
                 val result = repository.insertAlert(settings)
+                Log.d("InsertDebug", "Insert result: $result")
                 if (result > 0) {
                     workManager.scheduleWeatherAlert(
-                        settings.id.toString(),
+                        settings.id?:"",
                         settings.duration?:10,
                         settings.useDefaultSound?:false
                     )
@@ -115,10 +109,10 @@ class NotificationsViewModel(
     fun cancelAlert(id: String) {
         viewModelScope.launch {
             try {
-                scheduledAlerts.value.find { it.id.toString() == id }?.let { alert ->
+                scheduledAlerts.value.find { it.id == id }?.let { alert ->
                     val result = repository.deleteAlert(alert)
                     if (result > 0) {
-                        workManager.cancelWeatherAlert(alert.id.toString())
+                        workManager.cancelWeatherAlert(alert.id?:"")
                         // Refresh alerts after successful deletion
                         loadAlerts()
                     } else {

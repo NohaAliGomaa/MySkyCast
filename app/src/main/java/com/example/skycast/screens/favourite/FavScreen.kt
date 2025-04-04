@@ -1,4 +1,4 @@
-package com.example.skycast.favourite
+package com.example.skycast.screens.favourite
 
 
 import androidx.compose.foundation.Image
@@ -71,6 +71,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.Alignment.Companion.BottomEnd
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.platform.LocalContext
+import com.example.skycast.model.sharedpreferences.SharedManager
+import com.example.skycast.model.util.AppConstants
+import com.example.skycast.model.util.Utils
 
 @Composable
 fun FavWeatherScreen(
@@ -79,6 +83,7 @@ fun FavWeatherScreen(
     onNavigateToHome: (WeatherResponse?) -> Unit,
     viewModel: WeatherViewModel
 ) {
+    viewModel.getFavoriteWeathers()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     var weatherList by remember { mutableStateOf(weather) }
@@ -96,7 +101,8 @@ fun FavWeatherScreen(
             )
             .padding(16.dp)
     ) {
-
+        Text(text = "${R.string.favourite}", color = Color.White,style = androidx.compose.material3.MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.height(12.dp))
         if (weatherList.isEmpty()) {
             EmptyState(onNavigateToLocation)
         } else {
@@ -159,6 +165,7 @@ fun WeatherCard(
     onNavigateToHome: (WeatherResponse) -> Unit,
     onDelete: () -> Unit
 ) {
+    val lang = SharedManager.getSettings()?.lang?:AppConstants.LANG_EN
     Card(
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
@@ -207,12 +214,16 @@ fun WeatherCard(
             ) {
                 Column {
                     Text(
-                        "${data.name}°",
+                        if(lang == "ar"){"${Utils.getAddressArabic(LocalContext.current,data.lat,data.lon)}"}
+                        else{"${data.name}°"},
                         fontSize = 32.sp,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
-                    Text("${data.current?.temp ?: 0.0}", fontSize = 16.sp, color = Color.White)
+                    Text(
+                        if(lang == "ar"){"${Utils.englishNumberToArabicNumber((data.current?.temp ?: 0.0).toString())}"}
+                        else{"${data.current?.temp ?: 0.0}"}
+                        , fontSize = 16.sp, color = Color.White)
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     WeatherIcon(data.current?.weather?.get(0)?.icon ?: "", 42.dp)

@@ -9,13 +9,13 @@ data class AlertSettings (var lat:Double=36.4761,
                           var isALarm:Boolean=true,var
                           isNotification:Boolean=false)
 
-@Entity(tableName = "Alert")
+@Entity(tableName = "alert")
 data class MyAlert(
-    @PrimaryKey(autoGenerate = true) val id: Int =0 ,
-    var startTime: Long? = 0,
-    val duration: Long? = 0,
+    @PrimaryKey(autoGenerate = true) val dbId: Int =0,
+    val id: String? = "" ,
+    var startTime: Long? = 2,
+    val duration: Long? = 10,
     val type: String? = "",
     val useDefaultSound : Boolean? = false,
-    val snooze: Boolean? = false,
-    val createdAt: Long = System.currentTimeMillis()
-)
+    val snooze: Boolean? = false
+):Serializable

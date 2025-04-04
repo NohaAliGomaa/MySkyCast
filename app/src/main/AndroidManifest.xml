@@ -35,7 +35,7 @@
         tools:overrideLibrary="androidx.wear.compose.material.core">
 
         <receiver
-            android:name=".notifications.AlertReceiver"
+            android:name=".screens.notifications.AlertReceiver"
             android:enabled="true"
             android:exported="true" />
 

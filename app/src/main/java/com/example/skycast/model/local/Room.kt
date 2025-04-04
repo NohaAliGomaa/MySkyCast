@@ -20,10 +20,11 @@ import com.example.skycast.model.util.Converters
 import kotlinx.coroutines.flow.Flow
 
 @Dao
+
 interface AlertDao {
-    @Query("SELECT * From Alert")
+    @Query("SELECT * From alert")
     fun getAlerts(): Flow<List<MyAlert>>
-    @Query("SELECT * From Alert Where id=:id")
+    @Query("SELECT * From alert Where id=:id")
     fun getAlert(id:Long): Flow<MyAlert>
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAlert(alert: MyAlert): Long

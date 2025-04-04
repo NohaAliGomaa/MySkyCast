@@ -1,4 +1,4 @@
-package com.example.skycast.splash
+package com.example.skycast.screens.splash
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -20,7 +20,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.skycast.R
-import com.example.skycast.home.WeatherScreen
+import com.example.skycast.screens.home.WeatherScreen
 import com.example.skycast.model.pojo.WeatherResponse
 import com.example.skycast.model.result.WeatherResult
 import com.example.skycast.ui.theme.PrimaryColor

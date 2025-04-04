@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.skycast.model.sharedpreferences.SharedManager
-import com.example.skycast.notifications.AlertReceiver
+import com.example.skycast.screens.notifications.AlertReceiver
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date

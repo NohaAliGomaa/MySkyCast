@@ -1,4 +1,4 @@
-package com.example.skycast.notifications
+package com.example.skycast.screens.notifications
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -47,7 +47,8 @@ class WeatherAlertWorker(
 
     private suspend fun getWeatherInfo(): WeatherInfo? {
         return try {
-            WorkerUtils.getRepository(context).getCurrentWeathers().firstOrNull()?.firstOrNull()?.let { forecast ->
+            WorkerUtils.getRepository(context)
+                .getCurrentWeathers().firstOrNull()?.firstOrNull()?.let { forecast ->
                 WeatherInfo(
                     temperature = forecast.current?.temp?.toInt(),
                     description = forecast.current?.weather?.firstOrNull()?.description
@@ -90,24 +91,24 @@ class WeatherAlertWorker(
         val isConnected = NetworkUtils.isInternetAvailable(context)
         val contentText = if (weatherInfo != null) {
             if (isConnected) {
-                "🌡️ Temperature: ${weatherInfo.temperature}°\n🌤️ Condition: ${weatherInfo.description?.capitalize()}"
+                "${R.string.temperature} ${weatherInfo.temperature}°\n${R.string.condition} ${weatherInfo.description?.capitalize()}"
             } else {
-                "🌡️ Temperature: ${weatherInfo.temperature}°\n🌤️ Condition: ${weatherInfo.description?.capitalize()}\n⚠️ This data is expired. Check your connection and try Aurora again."
+                "${R.string.temperature} ${weatherInfo.temperature}°\n${R.string.condition} ${weatherInfo.description?.capitalize()}\n${R.string.expired_warning}."
             }
         } else {
-            "🌦️ Weather conditions update available"
+            "${R.string.weather_update_available}"
         }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.alarm)
-            .setContentTitle("Aurora")
+            .setContentTitle("SkyCast")
             .setContentText(contentText)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .addAction(android.R.drawable.ic_delete, "Dismiss", dismissPendingIntent)
+            .addAction(android.R.drawable.ic_delete, "${R.string.dismiss}", dismissPendingIntent)
             .setStyle(NotificationCompat.BigTextStyle().bigText(contentText))
             .apply {
                 if (useDefaultSound) {
@@ -134,31 +135,7 @@ class WeatherAlertWorker(
             notificationManager?.createNotificationChannel(channel)
         }
     }
-    fun scheduleWeatherAlert(
-        context: Context,
-        alertId: String,
-        duration: Long,
-        useDefaultSound: Boolean
-    ) {
-        val workManager = WorkManager.getInstance(context)
 
-        val inputData = workDataOf(
-            WeatherAlertWorker.EXTRA_ALERT_ID to alertId,
-            "useDefaultSound" to useDefaultSound
-        )
-
-        val workRequest = OneTimeWorkRequestBuilder<WeatherAlertWorker>()
-            .setInitialDelay(duration, TimeUnit.MILLISECONDS)
-            .setInputData(inputData)
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED) // Ensures network availability
-                    .build()
-            )
-            .build()
-
-        workManager.enqueue(workRequest)
-    }
     private data class WeatherInfo(
         val temperature: Int?,
         val description: String?

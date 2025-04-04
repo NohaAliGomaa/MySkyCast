@@ -1,4 +1,4 @@
-package com.example.skycast.home
+package com.example.skycast.screens.home
 
 import android.annotation.SuppressLint
 import android.os.Build

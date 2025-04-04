@@ -1,4 +1,4 @@
-package com.example.skycast.notifications
+package com.example.skycast.screens.notifications
 
 import android.content.Context
 import androidx.work.Constraints

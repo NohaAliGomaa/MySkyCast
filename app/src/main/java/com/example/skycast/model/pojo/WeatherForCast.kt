@@ -1,10 +1,5 @@
 package com.example.skycast.model.pojo
 
-import androidx.annotation.Keep
-import androidx.room.Embedded
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
 
 data class WeatherInfo(
     val id: Int = 0,

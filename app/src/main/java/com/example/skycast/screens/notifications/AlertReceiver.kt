@@ -1,4 +1,4 @@
-package com.example.skycast.notifications
+package com.example.skycast.screens.notifications
 
 import android.app.NotificationManager
 import android.content.BroadcastReceiver

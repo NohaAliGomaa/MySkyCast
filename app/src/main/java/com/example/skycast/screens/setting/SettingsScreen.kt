@@ -1,4 +1,4 @@
-package com.example.skycast.setting
+package com.example.skycast.screens.setting
 
 import android.os.Build
 import android.os.Bundle

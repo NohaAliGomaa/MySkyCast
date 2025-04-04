@@ -29,4 +29,23 @@
     <string name="arabic">العربية</string>
     <string name="title_activity_full_screen">الشاشة الكاملة</string>
     <string name="notification_channel_title">توقعات الطقس</string>
+    <string name="dismiss">تجاهل</string>
+    <string name="temperature">🌡️ درجة الحرارة: %1$d°</string>
+    <string name="condition">🌤️ الحالة: %1$s</string>
+    <string name="expired_warning">⚠️ هذه البيانات منتهية. تحقق من الاتصال بالإنترنت وحاول استخدام سكاي كاست مرة أخرى.</string>
+    <string name="weather_update_available">🌦️ تحديث حالة الطقس متاح</string>
+    <string name="weather_alert">تنبيه طقس</string>
+    <string name="alert_due_now">التنبيه الآن</string>
+    <string name="alert_in_hours_minutes">تنبيه خلال %1$dh %2$dm</string>
+    <string name="alert_in_minutes">تنبيه خلال %1$dm</string>
+    <string name="delete_alert">حذف التنبيه</string>
+    <string name="delete_alert_message">هل أنت متأكد أنك تريد حذف هذا التنبيه؟</string>
+    <string name="delete">حذف</string>
+    <string name="cancel">إلغاء</string>
+    <string name="sound_enabled">الصوت مفعل</string>
+    <string name="sound_disabled">الصوت غير مفعل</string>
+    <string name="weather_alerts">تنبيهات الطقس</string>
+    <string name="schedule_weather_alert">جدولة تنبيه الطقس</string>
+    <string name="schedule_alert">جدولة التنبيه</string>
+    <string name="favourite">المفضلة</string>
 </resources>

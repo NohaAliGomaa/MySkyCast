@@ -1,4 +1,4 @@
-package com.example.skycast.notifications
+package com.example.skycast.screens.notifications
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -21,7 +21,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.skycast.R
 import com.example.skycast.model.pojo.MyAlert
+import com.example.skycast.screens.notifications.WeatherAlertWorker.Companion.EXTRA_ALERT_ID
 import com.example.skycast.viewmodel.NotificationsViewModel
 import java.util.Calendar
 
@@ -46,7 +48,7 @@ fun WeatherAlertBottomSheet(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Schedule Weather Alert",
+                text = "${R.string.schedule_weather_alert}",
                 style = MaterialTheme.typography.titleLarge
             )
 
@@ -58,18 +60,20 @@ fun WeatherAlertBottomSheet(
             Button(
                 onClick = {
                     val duration = calculateDuration(timePickerState)
-                    viewModel.scheduleAlert(
-                        MyAlert(
-                            duration = duration,
-                            useDefaultSound = useDefaultSound
-                        )
+                    val alert = MyAlert(
+                        id = "",
+                        startTime =System.currentTimeMillis(),
+                        duration = duration,
+                        type = "type",
+                        useDefaultSound = useDefaultSound,
+                        snooze = false
                     )
-                    viewModel.updateAlerts()
+                    viewModel.scheduleAlert(alert)
                     onDismiss()
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Schedule Alert")
+                Text("${R.string.schedule_alert}")
             }
 
             Spacer(modifier = Modifier.height(16.dp))

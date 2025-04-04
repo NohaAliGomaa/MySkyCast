@@ -1,4 +1,4 @@
-package com.example.skycast.notifications
+package com.example.skycast.screens.notifications
 
 import android.content.Intent
 import android.net.Uri
@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -102,28 +103,26 @@ fun NotificationsScreen(
                 )
                 .padding(16.dp)
         ) {
-            Text(text = "Weather Alerts", color = Color.White,style = MaterialTheme.typography.headlineMedium)
+            Text(text = "${R.string.weather_alerts}", color = Color.White,style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(12.dp))
             Box(
                 modifier = Modifier.fillMaxSize(),
 
             ) {
                 if (scheduledAlerts.isNotEmpty()) {
+                    viewModel.updateAlerts()
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         contentPadding = PaddingValues(16.dp)
                     ) {
-                        items(
-                            count = scheduledAlerts.size,
-                            key = { index -> scheduledAlerts[index].id }
-                        ) { index ->
-                            val alert = scheduledAlerts[index]
+                        items(scheduledAlerts) { index ->
+                            val alert = index
                             SwipeableNotificationCard(
                                 message = formatTimeRemainingMessage(alert),
                                 timestamp = formatTimestamp(alert.startTime ?: 0),
                                 soundEnabled = alert.useDefaultSound ?: false,
-                                onDelete = { viewModel.cancelAlert(alert.id.toString()) },
+                                onDelete = { viewModel.cancelAlert(alert.id?:"") },
                                 modifier = Modifier.animateItemPlacement()
                             )
                         }
@@ -140,7 +139,7 @@ fun NotificationsScreen(
                                 .padding(16.dp)
                         ) {
                             Image(
-                                painter = painterResource(id = R.drawable.location),
+                                painter = painterResource(id = R.drawable.add),
                                 contentDescription = stringResource(id = R.string.go_to_location_screen),
                                 modifier = Modifier.fillMaxSize()
                             )
@@ -156,21 +155,22 @@ fun NotificationsScreen(
 
     if (showBottomSheet) {
         WeatherAlertBottomSheet(
-            onDismiss = { showBottomSheet = false },
+            onDismiss = { showBottomSheet = false
+                        viewModel.updateAlerts()},
             viewModel = viewModel
         )
     }
 }
 
 private fun formatTimeRemainingMessage(alert: MyAlert): String {
-    val remaining = (alert.startTime?:0 + alert?.duration!!) - System.currentTimeMillis()
+    val remaining = (alert.startTime ?: (0 + alert?.duration!!)) - System.currentTimeMillis()
     val hours = remaining / (1000 * 60 * 60)
     val minutes = (remaining % (1000 * 60 * 60)) / (1000 * 60)
 
     return when {
-        hours > 0 -> "Alert in ${hours}h ${minutes}m"
-        minutes > 0 -> "Alert in ${minutes}m"
-        else -> "Alert due now"
+        hours > 0 -> "${R.string.alert_in_hours_minutes} ${hours}h ${minutes}m"
+        minutes > 0 -> "${R.string.alert_in_minutes} ${minutes}m"
+        else -> "${R.string.alert_due_now} "
     }
 }
 
@@ -199,16 +199,10 @@ private fun EmptyNotificationsMessage(  showBottomSheet: () -> Unit) {
             painter = painterResource(id = R.drawable.bell),
             contentDescription = "Weather House",
             modifier = Modifier
-                .size(300.dp)
+                .size(200.dp)
                 .align(Alignment.Center)
         )
         Spacer(modifier = Modifier.height(16.dp))
-        androidx.compose.material3.Text(
-            text = "No active notifications",
-            style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
-            color = Color.White,
-            textAlign = TextAlign.Center
-        )
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Bottom,
@@ -217,7 +211,7 @@ private fun EmptyNotificationsMessage(  showBottomSheet: () -> Unit) {
             IconButton(
                 onClick = { showBottomSheet() },
                 modifier = Modifier
-                    .size(80.dp)
+                    .size(90.dp)
                     .padding(16.dp)
             ) {
                 Image(
@@ -253,8 +247,8 @@ private fun SwipeableNotificationCard(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { androidx.compose.material3.Text("Delete Alert") },
-            text = { androidx.compose.material3.Text("Are you sure you want to delete this alert?") },
+            title = { androidx.compose.material3.Text("${R.string.delete_alert} ") },
+            text = { androidx.compose.material3.Text("${R.string.delete_alert_message} ") },
             confirmButton = {
                 androidx.compose.material3.Button(
                     onClick = {
@@ -265,7 +259,7 @@ private fun SwipeableNotificationCard(
                         containerColor = androidx.compose.material3.MaterialTheme.colorScheme.error
                     )
                 ) {
-                    androidx.compose.material3.Text("Delete")
+                    androidx.compose.material3.Text("${R.string.delete} ")
                 }
             },
             dismissButton = {
@@ -275,7 +269,7 @@ private fun SwipeableNotificationCard(
                         containerColor = androidx.compose.material3.MaterialTheme.colorScheme.secondary
                     )
                 ) {
-                    androidx.compose.material3.Text("Cancel")
+                    androidx.compose.material3.Text("${R.string.cancel} ")
                 }
             }
         )
@@ -320,7 +314,7 @@ private fun NotificationCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 androidx.compose.material3.Text(
-                    text = "Weather Alert",
+                    text = "${R.string.weather_alert} ",
                     style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
                     color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
                 )
