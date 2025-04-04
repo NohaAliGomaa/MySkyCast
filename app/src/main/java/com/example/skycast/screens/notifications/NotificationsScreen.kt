@@ -103,7 +103,8 @@ fun NotificationsScreen(
                 )
                 .padding(16.dp)
         ) {
-            Text(text = "${R.string.weather_alerts}", color = Color.White,style = MaterialTheme.typography.headlineMedium)
+            Text(text = stringResource(id = R.string.weather_alerts),
+                style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(12.dp))
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -191,9 +192,7 @@ private fun EmptyNotificationsMessage(  showBottomSheet: () -> Unit) {
                         Color(TertiaryColor.value)
                     )
                 )
-            )
-            .padding(16.dp),
-
+            ),
     ) {
         Image(
             painter = painterResource(id = R.drawable.bell),
