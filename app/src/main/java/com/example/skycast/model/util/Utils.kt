@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.skycast.model.sharedpreferences.SharedManager
+import com.example.skycast.notifications.AlertReceiver
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -241,21 +242,24 @@ object Utils {
         val sdf = SimpleDateFormat("HH:mm")
         return sdf.format(dt)
     }
-//    @RequiresApi(Build.VERSION_CODES.M)
-//    fun canelAlarm(context: Context, alert:String?, requestCode:Int) {
-//        var alarmMgr: AlarmManager? = null
-//        lateinit var alarmIntent: PendingIntent
-//
-//        alarmMgr = context.applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-//        alarmIntent = Intent(context.applicationContext, AlarmReciver::class.java).putExtra(
-//            Constants.Alert,alert).let { intent ->
-//            PendingIntent.getBroadcast(context.applicationContext, requestCode, intent,
-//                PendingIntent.FLAG_IMMUTABLE
-//            )
-//        }
-//        alarmMgr?.cancel(alarmIntent)
-//
-//    }
+    @RequiresApi(Build.VERSION_CODES.M)
+    fun canelAlarm(context: Context, alert:String?, requestCode:Int) {
+        var alarmMgr: AlarmManager? = null
+        lateinit var alarmIntent: PendingIntent
+
+        alarmMgr = context.applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmIntent = Intent(context.applicationContext, AlertReceiver::class.java).putExtra(
+            AppConstants.Alert,alert).let { intent ->
+            PendingIntent.getBroadcast(context.applicationContext, requestCode, intent,
+                PendingIntent.FLAG_IMMUTABLE
+            )
+        }
+        alarmMgr?.cancel(alarmIntent)
+
+    }
+    fun getIconUrl(iconCode:String):String{
+        return  "https://openweathermap.org/img/wn/" + iconCode + "@4x.png";
+    }
     fun isDaily(startTime: Long, endTime: Long): Boolean {
         return endTime - startTime >= 86400000
     }

@@ -7,7 +7,6 @@ import com.example.skycast.model.util.Converters
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-@Entity(primaryKeys = ["startTime", "cityName"])
 @TypeConverters(Converters::class)
 data class WeatherAlert(
     val sender_name: String,

@@ -2,6 +2,7 @@ package com.example.skycast.setting
 
 import android.os.Build
 import android.os.Bundle
+import android.os.LocaleList
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.skycast.R
 import com.example.skycast.model.local.LocalDataSource
 import com.example.skycast.model.pojo.Settings
 import com.example.skycast.model.pojo.WeatherResponse
@@ -46,8 +48,9 @@ fun SettingsScreen(onNavToHome:()->Unit, settingsViewModel: SettingsViewModel = 
                    viewModel: LocationViewModel
 ) {
     val settings by settingsViewModel.settings.collectAsState(initial = Settings())
-
     val context = LocalContext.current
+    val isArabic = LocaleList.getDefault().get(0).language == "ar" // Check if the locale is Arabic
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -66,9 +69,9 @@ fun SettingsScreen(onNavToHome:()->Unit, settingsViewModel: SettingsViewModel = 
                 .fillMaxSize()
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally// Align content based on language
         ) {
-            Text(text = "Settings", style = MaterialTheme.typography.headlineMedium)
+            Text(text = stringResource(id = R.string.settings_title), style = MaterialTheme.typography.headlineMedium)
 
             // Location Selection (GPS or Map)
             LocationSelection(settings,{ isMapSelected ->
@@ -87,8 +90,9 @@ fun SettingsScreen(onNavToHome:()->Unit, settingsViewModel: SettingsViewModel = 
             // Save Button
             Button(onClick = {
                 settingsViewModel.saveSettings(settings)
-                onNavToHome()}) {
-                Text(text = "Save & Back")
+                onNavToHome()},
+                modifier =  Modifier.width(150.dp)) {
+                Text(text = stringResource(id = R.string.save_and_back))
             }
         }
     }
@@ -101,12 +105,14 @@ fun LocationSelection(
     viewModel: LocationViewModel,
     settingsViewModel: SettingsViewModel
 ) {
+    val isArabic = LocaleList.getDefault().get(0).language == "ar"
+
     Column {
-        Text(text = "Location Source", style = MaterialTheme.typography.titleMedium)
+        Text(text = stringResource(id = R.string.location_source), style = MaterialTheme.typography.titleMedium)
 
         listOf("GPS" to false, "Map" to true).forEach { (label, value) ->
             RadioButtonWithLabel(
-                text = label,
+                text = stringResource(id = if (label == "GPS") R.string.gps else R.string.map),
                 selected = settings.isMap == value,
                 onSelected = { onSelectionChange(value) }
             )
@@ -203,8 +209,10 @@ fun isValidLatLng(latitude: Double, longitude: Double): Boolean {
 }
 @Composable
 fun TemperatureUnitSelection(settings: Settings, onSelectionChange: (String) -> Unit) {
+    val isArabic = LocaleList.getDefault().get(0).language == "ar"
+
     Column {
-        Text(text = "Temperature Unit", style = MaterialTheme.typography.titleMedium)
+        Text(text = stringResource(id = R.string.temperature_unit), style = MaterialTheme.typography.titleMedium)
 
         listOf(
             "Kelvin" to AppConstants.UNITS_DEFAULT,
@@ -212,22 +220,27 @@ fun TemperatureUnitSelection(settings: Settings, onSelectionChange: (String) -> 
             "Celsius" to AppConstants.UNITS_CELSIUS
         ).forEach { (label, value) ->
             RadioButtonWithLabel(
-                text = label,
+                text = when (label) {
+                    "Kelvin" -> stringResource(id = R.string.kelvin)
+                    "Fahrenheit" -> stringResource(id = R.string.fahrenheit)
+                    "Celsius" -> stringResource(id = R.string.celsius)
+                    else -> label
+                },
                 selected = settings.unit == value,
                 onSelected = { onSelectionChange(value) }
             )
         }
     }
 }
-
 @Composable
 fun LanguageSelection(settings: Settings, onSelectionChange: (String) -> Unit) {
+    val isArabic = LocaleList.getDefault().get(0).language == "ar"
     Column {
-        Text(text = "Language", style = MaterialTheme.typography.titleMedium)
+        Text(text = stringResource(id = R.string.language), style = MaterialTheme.typography.titleMedium)
 
         listOf("English" to AppConstants.LANG_EN, "Arabic" to AppConstants.LANG_AR).forEach { (label, value) ->
             RadioButtonWithLabel(
-                text = label,
+                text = if (label == "English") stringResource(id = R.string.english) else stringResource(id = R.string.arabic),
                 selected = settings.lang == value,
                 onSelected = { onSelectionChange(value) }
             )

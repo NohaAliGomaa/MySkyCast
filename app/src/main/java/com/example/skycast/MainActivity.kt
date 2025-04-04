@@ -5,12 +5,9 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
-import android.net.Uri.encode
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -19,26 +16,21 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.*
 import com.example.skycast.ui.theme.SkyCastTheme
@@ -57,8 +49,6 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.Brush
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.toRoute
 import com.example.skycast.favourite.FavWeatherScreen
 import com.example.skycast.map.LocationScreen
 import com.example.skycast.model.local.LocalDataSource
@@ -68,17 +58,15 @@ import com.example.skycast.model.sharedpreferences.SharedManager
 import com.example.skycast.model.util.BottomNavItem
 import com.example.skycast.model.util.NetworkUtils
 import com.example.skycast.model.util.PreviewCustomProgressIndicator
-import com.example.skycast.model.util.Utils
 import com.example.skycast.setting.SettingsScreen
 import com.example.skycast.ui.theme.PrimaryColor
-import com.example.skycast.ui.theme.SecondaryColor
 import com.example.skycast.ui.theme.TertiaryColor
 import com.example.skycast.viewmodel.LocationFactory
+import com.example.skycast.viewmodel.NotificationsViewModel
 import com.example.skycast.viewmodel.SettingsViewModel
 import com.example.skycast.viewmodel.SettingsViewModelFactory
-import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
-import java.util.Locale
+import com.example.skycast.notifications.NotificationsScreen
+import com.example.skycast.notifications.WeatherManager
 
 
 class MainActivity : ComponentActivity() {
@@ -87,18 +75,28 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val repo =WeatherRepositry(RemoteDataSourceImpl(),LocalDataSource(this))
         val isOnline = NetworkUtils.isInternetAvailable(this)
-        val factory = WeatherFactory(WeatherRepositry(RemoteDataSourceImpl(),LocalDataSource(this)),this)
+        val factory = WeatherFactory(repo,this)
         val viewModel = ViewModelProvider(this, factory).get(WeatherViewModel::class.java)
+        val notificationFactory = NotificationsViewModel.Factory(
+            repository = WeatherRepositry(
+                RemoteDataSourceImpl(),
+                LocalDataSource(this)
+            ),
+            workManager = WeatherManager(this),
+            context = this
+        )
+        val notificationViewModel = ViewModelProvider(this, notificationFactory ).get(NotificationsViewModel::class.java)
         val app = application as MyApp
         val locationFactory = LocationFactory(app)
         val locationViewModel = ViewModelProvider(this, locationFactory).get(LocationViewModel::class.java)
-     val settingFactory = SettingsViewModelFactory(WeatherRepositry(RemoteDataSourceImpl(),LocalDataSource(this)))
-       // val settingFactory = SettingsViewModelFactory(SharedManager(this))
+     val settingFactory = SettingsViewModelFactory(repo)
         val settingViewModel = ViewModelProvider(this, settingFactory).get(SettingsViewModel::class.java)
+
         setContent {
             SkyCastTheme {
-                AppNavigation(viewModel,isOnline,locationViewModel,settingViewModel)
+                AppNavigation(viewModel,isOnline,locationViewModel,settingViewModel,notificationViewModel)
             }
         }
     }
@@ -111,7 +109,8 @@ fun AppNavigation(
     viewModel: WeatherViewModel,
     isOnline : Boolean,
     locationViewModel: LocationViewModel,
-    settingViewModel: SettingsViewModel
+    settingViewModel: SettingsViewModel,
+    notificationViewModel:NotificationsViewModel
 
 ) {
 
@@ -268,14 +267,10 @@ fun AppNavigation(
                         )
                     }
                 }else{
-
                     if(settings.isMap == false){
-                        if(settings.lat == null && settings.lon == null) {
-                            if (weatherObject == WeatherResponse(
-                                    0.0,
-                                    0.0
-                                ) || weatherObject == null
-                            ) {
+                        if (weatherObject == WeatherResponse(0.0, 0.0)
+                            || weatherObject == null) {
+                            if(settings.lat == null && settings.lon == null)  {
                                 locationState.latitude?.let { lat ->
                                     locationState.longitude?.let { lon ->
                                         LaunchedEffect(lat, lon) {
@@ -290,26 +285,26 @@ fun AppNavigation(
                                         }
                                     }
                                 }
-                            } else {
+                            } else{
                                 fetchWeatherData(
                                     viewModel,
-                                    lat = weatherObject.lat ?: 0.0,
-                                    lon = weatherObject.lon ?: 0.0,
+                                    lat = settings.lat,
+                                    lon = settings.lon,
                                     lang = settings.lang,
                                     units = settings.unit,
                                     context
                                 )
                             }
-                        }else{
-                            fetchWeatherData(
-                                viewModel,
-                                lat = settings.lat,
-                                lon = settings.lon,
-                                lang = settings.lang,
-                                units = settings.unit,
-                                context
-                            )
                         }
+                        } else {
+                        fetchWeatherData(
+                            viewModel,
+                            lat = weatherObject?.lat ?: 0.0,
+                            lon = weatherObject?.lon ?: 0.0,
+                            lang = settings.lang,
+                            units = settings.unit,
+                            context
+                        )
                     }
                 }
                 // Weather Display Logic
@@ -320,7 +315,7 @@ fun AppNavigation(
 
                     is WeatherResult.Success -> {
 
-                        WeatherScreen(currentWeather.data, weatherInfo, isOnline)
+                        WeatherScreen(weatherObject?:currentWeather.data, weatherInfo, isOnline)
                     }
 
                     is WeatherResult.Failure -> {
@@ -332,9 +327,10 @@ fun AppNavigation(
                 }
             }
             composable("alert") {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Alert Screen")
-                }
+                NotificationsScreen(
+                    onBackClick = {},
+                    viewModel = notificationViewModel,
+                )
             }
 
             composable(ScreenRout.FavScreenRoute.route) {backStackEntry ->

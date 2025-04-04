@@ -2,6 +2,8 @@ package com.example.skycast.model.repositries
 
 import com.example.skycast.model.local.ILocalDataSource
 import com.example.skycast.model.local.LocalDataSource
+import com.example.skycast.model.pojo.AlertSettings
+import com.example.skycast.model.pojo.MyAlert
 import com.example.skycast.model.pojo.Settings
 import com.example.skycast.model.pojo.WeatherInfo
 import com.example.skycast.model.pojo.WeatherResponse
@@ -63,12 +65,17 @@ class WeatherRepositry(
         // SharedManger.init(context)
         return SharedManager.getSettings()
     }
-//    override fun saveAlertSettings(alertSettings: AlertSettings){
-//        // SharedManger.init(context)
-//        SharedManger.saveAlertSettings(alertSettings)
-//    }
-//    override fun getAlertSettings():AlertSettings?{
-//        // SharedManger.init(context)
-//        return SharedManger.getAlertSettings()
-//    }
+    //alert room
+    override suspend fun insertAlert(alert: MyAlert)=localDataSource.insertAlert(alert)
+    override suspend fun deleteAlert(alert: MyAlert)=localDataSource.deleteAlert(alert)
+    override fun getAlerts()=localDataSource.getAlerts()
+    override fun getAlert(id: Long)=localDataSource.getAlert(id!!)
+    override fun saveAlertSettings(alertSettings: AlertSettings) {
+        // SharedManger.init(context)
+        SharedManager.saveAlertSettings(alertSettings)
+    }
+    override fun getAlertSettings(): AlertSettings?{
+        // SharedManger.init(context)
+        return SharedManager.getAlertSettings()
+    }
 }

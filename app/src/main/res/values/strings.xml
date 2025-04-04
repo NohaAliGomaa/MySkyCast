@@ -12,7 +12,21 @@
     <string name="gusts_up_to">Gusts up to %1$s%2$s</string>
     <string name="go_to_location_screen">Go to Location Screen</string>
     <string name="weather_description">Weather Description</string>
-
-
+    <string name="settings_title">Settings</string>
+    <string name="location_source">Location Source</string>
+    <string name="temperature_unit">Temperature Unit</string>
+    <string name="language">Language</string>
+    <string name="save_and_back">Save</string>
+    <string name="confirm_location">Confirm Location</string>
+    <string name="invalid_location">Invalid location selected!</string>
+    <string name="gps">GPS</string>
+    <string name="map">Map</string>
+    <string name="kelvin">Kelvin</string>
+    <string name="fahrenheit">Fahrenheit</string>
+    <string name="celsius">Celsius</string>
+    <string name="english">English</string>
+    <string name="arabic">Arabic</string>
+    <string name="title_activity_full_screen">FullScreenActivity</string>
+    <string name="notification_channel_title">Weather Forecast </string>
 
 </resources>
