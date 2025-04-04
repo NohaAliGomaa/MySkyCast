@@ -10,6 +10,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.skycast.notifications.WeatherAlertWorker
 import java.util.concurrent.TimeUnit
 
 class WeatherManager(private val context: Context) {

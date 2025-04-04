@@ -1,4 +1,4 @@
-package com.example.skycast.screens.notifications
+package com.example.skycast.notifications
 
 import android.content.Intent
 import android.net.Uri
@@ -62,6 +62,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.skycast.R
 import com.example.skycast.model.pojo.MyAlert
+import com.example.skycast.screens.notifications.WeatherAlertBottomSheet
 import com.example.skycast.ui.theme.PrimaryColor
 import com.example.skycast.ui.theme.TertiaryColor
 import com.example.skycast.viewmodel.NotificationsViewModel
@@ -103,8 +104,7 @@ fun NotificationsScreen(
                 )
                 .padding(16.dp)
         ) {
-            Text(text = stringResource(id = R.string.weather_alerts),
-                style = MaterialTheme.typography.headlineMedium)
+            Text(text = "Weather Alerts", color = Color.White,style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(12.dp))
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -123,7 +123,7 @@ fun NotificationsScreen(
                                 message = formatTimeRemainingMessage(alert),
                                 timestamp = formatTimestamp(alert.startTime ?: 0),
                                 soundEnabled = alert.useDefaultSound ?: false,
-                                onDelete = { viewModel.cancelAlert(alert.id?:"") },
+                                onDelete = { viewModel.cancelAlert(alert.id.toString()) },
                                 modifier = Modifier.animateItemPlacement()
                             )
                         }
@@ -140,7 +140,7 @@ fun NotificationsScreen(
                                 .padding(16.dp)
                         ) {
                             Image(
-                                painter = painterResource(id = R.drawable.add),
+                                painter = painterResource(id = R.drawable.location),
                                 contentDescription = stringResource(id = R.string.go_to_location_screen),
                                 modifier = Modifier.fillMaxSize()
                             )
@@ -156,22 +156,21 @@ fun NotificationsScreen(
 
     if (showBottomSheet) {
         WeatherAlertBottomSheet(
-            onDismiss = { showBottomSheet = false
-                        viewModel.updateAlerts()},
+            onDismiss = { showBottomSheet = false },
             viewModel = viewModel
         )
     }
 }
 
 private fun formatTimeRemainingMessage(alert: MyAlert): String {
-    val remaining = (alert.startTime ?: (0 + alert?.duration!!)) - System.currentTimeMillis()
+    val remaining = (alert.startTime?:0 + alert?.duration!!) - System.currentTimeMillis()
     val hours = remaining / (1000 * 60 * 60)
     val minutes = (remaining % (1000 * 60 * 60)) / (1000 * 60)
 
     return when {
-        hours > 0 -> "${R.string.alert_in_hours_minutes} ${hours}h ${minutes}m"
-        minutes > 0 -> "${R.string.alert_in_minutes} ${minutes}m"
-        else -> "${R.string.alert_due_now} "
+        hours > 0 -> "Alert in ${hours}h ${minutes}m"
+        minutes > 0 -> "Alert in ${minutes}m"
+        else -> "Alert due now"
     }
 }
 
@@ -192,16 +191,24 @@ private fun EmptyNotificationsMessage(  showBottomSheet: () -> Unit) {
                         Color(TertiaryColor.value)
                     )
                 )
-            ),
+            )
+            .padding(16.dp),
+
     ) {
         Image(
             painter = painterResource(id = R.drawable.bell),
             contentDescription = "Weather House",
             modifier = Modifier
-                .size(200.dp)
+                .size(300.dp)
                 .align(Alignment.Center)
         )
         Spacer(modifier = Modifier.height(16.dp))
+        androidx.compose.material3.Text(
+            text = "No active notifications",
+            style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
+            color = Color.White,
+            textAlign = TextAlign.Center
+        )
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Bottom,
@@ -210,7 +217,7 @@ private fun EmptyNotificationsMessage(  showBottomSheet: () -> Unit) {
             IconButton(
                 onClick = { showBottomSheet() },
                 modifier = Modifier
-                    .size(90.dp)
+                    .size(80.dp)
                     .padding(16.dp)
             ) {
                 Image(
@@ -242,12 +249,12 @@ private fun SwipeableNotificationCard(
             false
         }
     )
-    stringResource(id = R.string.favourite)
+
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { androidx.compose.material3.Text(stringResource(id = R.string.delete_alert)) },
-            text = { androidx.compose.material3.Text(stringResource(id =R.string.delete_alert_message)) },
+            title = { androidx.compose.material3.Text("Delete Alert") },
+            text = { androidx.compose.material3.Text("Are you sure you want to delete this alert?") },
             confirmButton = {
                 androidx.compose.material3.Button(
                     onClick = {
@@ -258,7 +265,7 @@ private fun SwipeableNotificationCard(
                         containerColor = androidx.compose.material3.MaterialTheme.colorScheme.error
                     )
                 ) {
-                    androidx.compose.material3.Text(stringResource(id =R.string.delete))
+                    androidx.compose.material3.Text("Delete")
                 }
             },
             dismissButton = {
@@ -268,7 +275,7 @@ private fun SwipeableNotificationCard(
                         containerColor = androidx.compose.material3.MaterialTheme.colorScheme.secondary
                     )
                 ) {
-                    androidx.compose.material3.Text(stringResource(id =R.string.cancel))
+                    androidx.compose.material3.Text("Cancel")
                 }
             }
         )
@@ -313,7 +320,7 @@ private fun NotificationCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 androidx.compose.material3.Text(
-                    text = stringResource(id =R.string.weather_alert),
+                    text = "Weather Alert",
                     style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
                     color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
                 )

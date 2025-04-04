@@ -5,9 +5,12 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.net.Uri.encode
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -16,21 +19,26 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.*
 import com.example.skycast.ui.theme.SkyCastTheme
@@ -49,6 +57,8 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.Brush
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.toRoute
 import com.example.skycast.screens.favourite.FavWeatherScreen
 import com.example.skycast.screens.map.LocationScreen
 import com.example.skycast.model.local.LocalDataSource
@@ -58,15 +68,20 @@ import com.example.skycast.model.sharedpreferences.SharedManager
 import com.example.skycast.model.util.BottomNavItem
 import com.example.skycast.model.util.NetworkUtils
 import com.example.skycast.model.util.PreviewCustomProgressIndicator
+import com.example.skycast.model.util.Utils
 import com.example.skycast.screens.setting.SettingsScreen
 import com.example.skycast.ui.theme.PrimaryColor
+import com.example.skycast.ui.theme.SecondaryColor
 import com.example.skycast.ui.theme.TertiaryColor
 import com.example.skycast.viewmodel.LocationFactory
-import com.example.skycast.viewmodel.NotificationsViewModel
 import com.example.skycast.viewmodel.SettingsViewModel
 import com.example.skycast.viewmodel.SettingsViewModelFactory
+import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
+import java.util.Locale
 import com.example.skycast.screens.notifications.NotificationsScreen
 import com.example.skycast.screens.notifications.WeatherManager
+import com.example.skycast.viewmodel.NotificationsViewModel
 
 
 class MainActivity : ComponentActivity() {
@@ -113,6 +128,7 @@ fun AppNavigation(
     notificationViewModel:NotificationsViewModel
 
 ) {
+
     val context = LocalContext.current
     val locationState by locationViewModel.locationState.collectAsState()
     val weather by viewModel.weather.collectAsStateWithLifecycle()

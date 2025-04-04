@@ -55,8 +55,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.benchmark.macro)
-    implementation(libs.androidx.compose.material)
-    implementation(libs.androidx.junit.ktx)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -81,7 +80,7 @@ dependencies {
     implementation( "androidx.navigation:navigation-compose:2.7.5")
     implementation( "androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 
-    implementation ("androidx.wear.compose:compose-material-core:1.3.0")
+
 // Retrofit
     implementation( "com.squareup.retrofit2:retrofit:2.9.0")
     implementation( "com.squareup.retrofit2:converter-gson:2.9.0")
@@ -116,12 +115,8 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.2.0")
     implementation("androidx.compose.material3:material3:1.2.0-alpha08")
 
-    implementation(platform("androidx.compose:compose-bom:2024.04.00"))
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material3:material3:1.2.1")
 
-
-    // or latest stable
+            // or latest stable
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.compose.ui:ui:1.5.4")
@@ -147,50 +142,6 @@ dependencies {
     implementation("androidx.compose.material:material:1.5.4") // Required for SwipeToDismiss
     implementation("androidx.compose.material3:material3:1.2.0") // For Material 3 UI
     implementation("androidx.compose.material:material:1.6.0")
-
-
-    // Dependencies for local unit tests
-    testImplementation ("junit:junit:4.13.2")
-    testImplementation( "androidx.arch.core:core-testing:2.2.0")
-    testImplementation ("org.robolectric:robolectric:4.5.1")
-
-    // AndroidX Test - JVM testing
-    testImplementation ("androidx.test:core-ktx:1.6.1")
-    //testImplementation "androidx.test.ext:junit:$androidXTestExtKotlinRunnerVersion"
-
-    // AndroidX Test - Instrumented testing
-    androidTestImplementation ("androidx.test:core:1.1.3")
-    androidTestImplementation ("androidx.test.espresso:espresso-core:3.4.0")
-
-    //Timber
-    implementation("com.jakewharton.timber:timber:5.0.1")
-
-    // hamcrest
-    // testImplementation "org.hamcrest:hamcrest:2.2"
-    //testImplementation "org.hamcrest:hamcrest-library:2.2"
-    androidTestImplementation ("org.hamcrest:hamcrest:2.2")
-    androidTestImplementation ("org.hamcrest:hamcrest-library:2.2")
-
-
-    // AndroidX and Robolectric
-    testImplementation ("androidx.test.ext:junit-ktx:1.1.3")
-    testImplementation ("androidx.test:core-ktx:1.6.1")
-    testImplementation ("org.robolectric:robolectric:4.11")
-
-    // InstantTaskExecutorRule
-    testImplementation ("androidx.arch.core:core-testing:2.1.0")
-    androidTestImplementation ("androidx.arch.core:core-testing:2.1.0")
-
-    //kotlinx-coroutines
-    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0")
-    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.0")
-    androidTestImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.0")
-
-
-    //MockK
-    testImplementation( "io.mockk:mockk-android:1.13.17")
-    testImplementation ("io.mockk:mockk-agent:1.13.17")
-
 
 
     //Room

@@ -24,7 +24,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.skycast.R
 import com.example.skycast.model.pojo.MyAlert
-import com.example.skycast.screens.notifications.WeatherAlertWorker.Companion.EXTRA_ALERT_ID
 import com.example.skycast.viewmodel.NotificationsViewModel
 import java.util.Calendar
 

@@ -3,8 +3,6 @@ package com.example.skycast.model.sharedpreferences
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import com.example.skycast.model.pojo.AlertSettings
-import com.example.skycast.model.pojo.MyAlert
 import com.example.skycast.model.pojo.Settings
 import com.google.gson.Gson
 
@@ -43,15 +41,38 @@ object SharedManager {
             return null
         }
     }
-    fun saveAlertSettings(alertSettings: AlertSettings?) {
-        sharedPreferences.edit()
-            .putString(ALERT_SETTINGS, gson.toJson(alertSettings))
-            .apply()
-    }
+    fun updateUnit(unit :String){
 
-    fun getAlertSettings(): AlertSettings? {
-        return sharedPreferences.getString(ALERT_SETTINGS, null)?.let {
-            gson.fromJson(it, AlertSettings::class.java)
-        }
     }
+//    fun saveAlertSettings(alertSettings: AlertSettings) {
+//        sharedPreferences.edit()
+//            .putString(ALERT_SETTINGS, gson.toJson(alertSettings))
+//            .apply()
+//    }
+//
+//    fun getAlertSettings(): AlertSettings? {
+//        return sharedPreferences.getString(ALERT_SETTINGS, null)?.let {
+//            gson.fromJson(it, AlertSettings::class.java)
+//        }
+//    }
 }
+//class SharedManager(private val context: Context) {
+//
+//    private val sharedPreferences: SharedPreferences = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+//
+//    fun putBoolean(key: String, value: Boolean) {
+//        sharedPreferences.edit().putBoolean(key, value).apply()
+//    }
+//
+//    fun getBoolean(key: String, defaultValue: Boolean): Boolean {
+//        return sharedPreferences.getBoolean(key, defaultValue)
+//    }
+//
+//    fun putString(key: String, value: String) {
+//        sharedPreferences.edit().putString(key, value).apply()
+//    }
+//
+//    fun getString(key: String, defaultValue: String): String {
+//        return sharedPreferences.getString(key, defaultValue) ?: defaultValue
+//    }
+//}

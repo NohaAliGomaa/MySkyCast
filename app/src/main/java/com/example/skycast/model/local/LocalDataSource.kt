@@ -2,7 +2,6 @@ package com.example.skycast.model.local
 
 import android.content.Context
 import androidx.core.graphics.rotationMatrix
-import com.example.skycast.model.pojo.MyAlert
 import com.example.skycast.model.pojo.WeatherResponse
 import kotlinx.coroutines.flow.Flow
 
@@ -41,20 +40,5 @@ class LocalDataSource(var context: Context) : ILocalDataSource  {
 
     override suspend fun updateFavWeather(weather: WeatherResponse) {
      return room.getWeatherDao().updateFavWeather(weather)
-    }
-    override fun getAlerts(): Flow<List<MyAlert>>{
-        return room.alertDao().getAlerts()
-    }
-
-    override fun getAlert(id:Long): Flow<MyAlert>{
-        return room.alertDao().getAlert(id)
-    }
-
-    override suspend fun insertAlert(alert: MyAlert): Long{
-        return room.alertDao().insertAlert(alert)
-    }
-
-    override suspend fun deleteAlert(alert: MyAlert) : Int {
-        return room.alertDao().deleteAlert(alert)
     }
 }

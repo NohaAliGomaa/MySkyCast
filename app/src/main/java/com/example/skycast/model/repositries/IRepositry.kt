@@ -1,7 +1,5 @@
 package com.example.skycast.model.repositries
 
-import com.example.skycast.model.pojo.AlertSettings
-import com.example.skycast.model.pojo.MyAlert
 import com.example.skycast.model.pojo.Settings
 import com.example.skycast.model.pojo.WeatherInfo
 import com.example.skycast.model.pojo.WeatherResponse
@@ -22,11 +20,6 @@ interface IRepositry {
      suspend fun deleteFavorite(weather: WeatherResponse): Int
     fun saveSettings(settings: Settings)
     fun getSettings():Settings?
-    //alert room
-   suspend fun insertAlert(alert: MyAlert):Long
-    suspend fun deleteAlert(alert: MyAlert):Int
-     fun getAlerts():Flow<List<MyAlert>>
-    fun getAlert(id: Long) : Flow<MyAlert>
-    fun saveAlertSettings(alertSettings: AlertSettings)
-    fun getAlertSettings():AlertSettings?
+//    fun saveAlertSettings(alertSettings: AlertSettings)
+//    fun getAlertSettings():AlertSettings?
 }

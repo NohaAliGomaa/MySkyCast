@@ -12,6 +12,7 @@
     <string name="gusts_up_to">Gusts up to %1$s%2$s</string>
     <string name="go_to_location_screen">Go to Location Screen</string>
     <string name="weather_description">Weather Description</string>
+<<<<<<< HEAD
     <string name="settings_title">Settings</string>
     <string name="location_source">Location Source</string>
     <string name="temperature_unit">Temperature Unit</string>
@@ -47,5 +48,9 @@
     <string name="schedule_weather_alert">Schedule Weather Alert</string>
     <string name="schedule_alert">Schedule Alert</string>
     <string name="favourite">Favourite</string>
+=======
+
+
+>>>>>>> parent of 1bd6f95 (notification add to the project)
 
 </resources>
