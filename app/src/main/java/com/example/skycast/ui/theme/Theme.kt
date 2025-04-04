@@ -35,8 +35,9 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun SkyCastTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = true,
     // Dynamic color is available on Android 12+
+    // isSystemInDarkTheme()
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
