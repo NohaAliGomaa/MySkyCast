@@ -69,6 +69,7 @@ import com.example.skycast.model.util.BottomNavItem
 import com.example.skycast.model.util.NetworkUtils
 import com.example.skycast.model.util.PreviewCustomProgressIndicator
 import com.example.skycast.model.util.Utils
+import com.example.skycast.notifications.NotificationsScreen
 import com.example.skycast.screens.setting.SettingsScreen
 import com.example.skycast.ui.theme.PrimaryColor
 import com.example.skycast.ui.theme.SecondaryColor
@@ -79,7 +80,6 @@ import com.example.skycast.viewmodel.SettingsViewModelFactory
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import java.util.Locale
-import com.example.skycast.screens.notifications.NotificationsScreen
 import com.example.skycast.screens.notifications.WeatherManager
 import com.example.skycast.viewmodel.NotificationsViewModel
 

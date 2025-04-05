@@ -11,7 +11,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.skycast.model.pojo.AlertSettings
 import com.example.skycast.model.pojo.MyAlert
 import com.example.skycast.model.repositries.WeatherRepositry
-import com.example.skycast.model.result.LocalDataStateAlerts
 import com.example.skycast.screens.notifications.WeatherManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -13,7 +13,6 @@
     <string name="gusts_up_to">الرياح العاتية تصل إلى %1$s%2$s</string>
     <string name="go_to_location_screen">اذهب إلى شاشة الموقع</string>
     <string name="weather_description">وصف الطقس</string>
-<<<<<<< HEAD
     <string name="settings_title">الإعدادات</string>
     <string name="location_source">مصدر الموقع</string>
     <string name="temperature_unit">وحدة الحرارة</string>
@@ -49,7 +48,5 @@
     <string name="schedule_weather_alert">جدولة تنبيه الطقس</string>
     <string name="schedule_alert">جدولة التنبيه</string>
     <string name="favourite">المفضلة</string>
-=======
 
->>>>>>> parent of 1bd6f95 (notification add to the project)
 </resources>
